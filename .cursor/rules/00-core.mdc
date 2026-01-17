@@ -1,0 +1,28 @@
+# SIDH Phase 1 — Core Cursor Rules
+
+## Source of truth
+- Follow the currently attached task file in docs/cursor/ as the primary instruction.
+- Follow docs/specs/ as constraints (Narrative, Contract Skeleton, Technical Architecture).
+- If specs and code conflict, stop and ask.
+
+## Scope discipline
+- Execute one task at a time.
+- Do not implement future tasks.
+- Do not add new dependencies unless explicitly requested.
+- Do not change database schemas or contracts unless the attached task explicitly allows it.
+
+## Backend architecture
+- Use a NestJS modular monolith.
+- Controllers must be thin; business logic lives in services.
+- Use Prisma only via a PrismaService.
+- Use transactions for multi-step operations (e.g., approval → student creation).
+- Validate requests using DTOs with class-validator.
+
+## Security & permissions
+- Enforce RBAC and ownership on the backend.
+- Respect registration-period closed behavior.
+- Documents are confidential: parents upload only; admins may download.
+
+## Working style
+- Prefer small, reviewable changes.
+- Ask before proceeding if anything is unclear.

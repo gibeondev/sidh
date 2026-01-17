@@ -1,0 +1,23 @@
+{
+  "name": "sidh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SIDH Phase 1 Monorepo",
+  "scripts": {
+    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "build": "pnpm --recursive --filter './apps/*' build",
+    "lint": "pnpm --recursive --filter './apps/*' lint",
+    "type-check": "pnpm --recursive --filter './apps/*' type-check",
+    "prisma:generate": "pnpm --filter './packages/prisma' prisma:generate",
+    "prisma:migrate": "pnpm --filter './packages/prisma' prisma:migrate",
+    "prisma:studio": "pnpm --filter './packages/prisma' prisma:studio"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
