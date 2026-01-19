@@ -4,7 +4,7 @@
   "private": true,
   "description": "SIDH Phase 1 Monorepo",
   "scripts": {
-    "dev": "pnpm --parallel --filter './apps/*' dev",
+    "dev": "pnpm -r --parallel --filter \"./apps/**\" --filter \"./packages/**\" dev",
     "build": "pnpm --recursive --filter './apps/*' build",
     "lint": "pnpm --recursive --filter './apps/*' lint",
     "type-check": "pnpm --recursive --filter './apps/*' type-check",

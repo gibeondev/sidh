@@ -10,5 +10,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Bootstrap {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
 // Schema will be extended in future tasks
 // For now, only minimal structure needed for bootstrap
