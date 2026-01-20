@@ -13,6 +13,7 @@
     "prisma:studio": "pnpm --filter './packages/prisma' prisma:studio"
   },
   "devDependencies": {
+    "prisma": "^5.9.1",
     "typescript": "^5.3.3"
   },
   "engines": {
