@@ -26,3 +26,7 @@
 ## Working style
 - Prefer small, reviewable changes.
 - Ask before proceeding if anything is unclear.
+
+## Update task and spec documents
+- Never rewrite a spec unless we have the original text in front of us.
+- Never expand a spec beyond the scope of the actual change.
