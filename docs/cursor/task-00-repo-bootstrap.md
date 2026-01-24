@@ -48,7 +48,7 @@ decisions/
 - Package manager: pnpm
 - TypeScript (strict)
 - Prisma ORM
-- PostgreSQL (local)
+- PostgreSQL (local, not required during bootstrap)
 
 ---
 
@@ -64,7 +64,7 @@ decisions/
 ## 5) Backend (`apps/api`)
 - NestJS
 - Centralized config
-- PrismaService
+- PrismaService (no automatic DB connection on startup)
 - Health endpoint: GET /health
 
 ---
@@ -85,7 +85,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000
 - pnpm dev runs both apps
 - Web loads
 - /health returns 200
-- Prisma migration runs
+- API starts without requiring database connectivity
 
 ---
 
