@@ -53,13 +53,17 @@ Rules:
 ## 3) User Model
 
 ### 3.1 User entity (Prisma)
-Add a `User` model with minimum fields:
-- `id`
-- `email` (unique)
-- `password_hash`
-- `role` (ADMIN | PARENT)
-- `created_at`
-- `updated_at`
+`User` model fields:
+
+- `id` (Int, autoincrement)
+- `email` (String, globally unique)
+- `passwordHash` (String, mapped to DB column `password_hash`)
+- `role` (`UserRole`: ADMIN | PARENT)
+- `createdAt` (DateTime, mapped to `created_at`)
+- `updatedAt` (DateTime, mapped to `updated_at`)
+
+Table mapping:
+- DB table name: `users
 
 Rules:
 - Passwords stored as hashes only
@@ -78,7 +82,13 @@ Behavior:
 - Accepts email + password
 - Validates credentials
 - Issues JWT on success
-- Stores JWT in httpOnly cookie
+- Stores JWT in httpOnly cookie named `access_token` with:
+  - `httpOnly: true`
+  - `secure: true` in production
+  - `sameSite: lax`
+  - `path: /`
+  - `maxAge` derived from `JWT_EXPIRES_IN`
+
 
 ---
 
@@ -105,9 +115,9 @@ Rules:
 
 ### 5.1 JWT configuration
 - Access token only (Phase 1)
-- Stored in httpOnly cookie
-- Reasonable expiration time
-- Secret loaded from environment variables
+- Stored in httpOnly cookie `access_token`
+- Secret: `JWT_SECRET`
+- Expiration: `JWT_EXPIRES_IN`
 
 ---
 
