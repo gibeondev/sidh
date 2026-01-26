@@ -1,4 +1,4 @@
-# Task 90 — Quality Gates (Phase 1)
+# Task 09 — Quality Gates (Phase 1)
 
 ## 0) Purpose
 This task applies **quality gates** across the Phase 1 codebase.
