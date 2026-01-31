@@ -15,6 +15,11 @@ enum UserRole {
   PARENT
 }
 
+enum RegistrationPeriodStatus {
+  OPEN
+  CLOSED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -24,6 +29,18 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("users")
+}
+
+model RegistrationPeriod {
+  id        String                   @id @default(uuid()) @db.Uuid
+  name      String
+  startAt   DateTime                 @map("start_at")
+  endAt     DateTime                 @map("end_at")
+  status    RegistrationPeriodStatus @default(CLOSED)
+  createdAt DateTime                 @default(now()) @map("created_at")
+  updatedAt DateTime                 @updatedAt @map("updated_at")
+
+  @@map("registration_periods")
 }
 
 model Bootstrap {
