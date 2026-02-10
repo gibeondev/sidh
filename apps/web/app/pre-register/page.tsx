@@ -1,13 +1,20 @@
+/**
+ * Pre-register page - currently acts as Step 1 placeholder.
+ * This page displays the registration procedure and allows navigation through the multi-step form.
+ */
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { preRegister, type PreRegisterRequest } from '@/lib/api/applications';
-import { PreRegisterHeader } from '@/components/pre-register/PreRegisterHeader';
-import { PreRegisterStepper, type StepId } from '@/components/pre-register/PreRegisterStepper';
-import { PreRegisterBanner } from '@/components/pre-register/PreRegisterBanner';
-import { ParentGuardianForm } from '@/components/pre-register/ParentGuardianForm';
-import { StepActions } from '@/components/pre-register/StepActions';
+import {
+  PreRegisterHeader,
+  Stepper,
+  type StepId,
+  Banner,
+  ParentGuardianStep,
+  StepActions,
+} from '@/components/pre-register';
 
 const TOTAL_STEPS = 3;
 
@@ -88,15 +95,15 @@ export default function PreRegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-2xl">
+    <main className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl">
         <PreRegisterHeader />
-        <PreRegisterStepper currentStep={step} />
-        <PreRegisterBanner />
+        <Stepper currentStep={step} />
+        <Banner />
 
-        <form onSubmit={handleSubmit} className="mt-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="mt-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
           {error && (
-            <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert">
+            <div className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700" role="alert">
               {error}
             </div>
           )}
@@ -113,7 +120,7 @@ export default function PreRegisterPage() {
           )}
 
           {step === 2 && (
-            <ParentGuardianForm
+            <ParentGuardianStep
               data={{
                 applicantEmail: form.applicantEmail,
                 applicantName: form.applicantName,
@@ -146,7 +153,7 @@ export default function PreRegisterPage() {
             totalSteps={TOTAL_STEPS}
             onBack={handleBack}
             onNext={handleNext}
-            nextLabel={step === TOTAL_STEPS ? 'Submit pre-registration' : 'Next'}
+            nextLabel={step === TOTAL_STEPS ? 'Submit pre-registration' : 'Lanjut'}
             nextDisabled={step === TOTAL_STEPS ? submitting : false}
             nextAsSubmit={step === TOTAL_STEPS}
           />

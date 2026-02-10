@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { preRegister, type PreRegisterRequest } from '@/lib/api/applications';
-import { PreRegisterHeader } from '@/components/pre-register/PreRegisterHeader';
-import { Stepper, type StepId } from '@/components/pre-register/Stepper';
-import { Banner } from '@/components/pre-register/Banner';
-import { ParentGuardianStep } from '@/components/pre-register/ParentGuardianStep';
-import { StepActions } from '@/components/pre-register/StepActions';
+import {
+  PreRegisterHeader,
+  Stepper,
+  type StepId,
+  Banner,
+  ParentGuardianStep,
+  StepActions,
+} from '@/components/pre-register';
 
 const TOTAL_STEPS = 3;
 
