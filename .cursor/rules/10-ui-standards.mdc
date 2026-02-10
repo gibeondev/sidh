@@ -1,0 +1,45 @@
+# UI STANDARDS Phase 1 - Rules
+
+## Routing & layout
+- Use Next.js App Router.
+- Public pre-registration routes live under app/(public)/pre-register/step-N/page.tsx.
+- Pages should be thin orchestrators (composition + state), no heavy UI markup duplication.
+
+## Component ownership
+- Shared pre-registration components live in components/pre-register/:
+  - Header, Stepper, Banner, StepActions
+- Step-specific form content lives in components/pre-register/StepX*.tsx and receives props.
+- Do not create duplicate variants (e.g., PreRegisterHeader2, StepperV2). Reuse and extend the existing ones.
+
+## Form architecture
+- Page owns the single source of truth for form state:
+  - form: PreRegisterRequest (or a dedicated UI type)
+  - setForm / onChange callbacks passed down
+- Step components must not fetch or own global state. They only render and call onChange.
+
+## Layout fidelity
+- All form rows MUST use FormRow (two-column grid):
+  - left label column fixed width (e.g. 240px)
+  - right field column flexible
+- Do not stack labels above inputs unless explicitly required by design.
+- Use grid/flex only; no absolute positioning for layout.
+
+## shadcn + Tailwind
+- Use shadcn/ui components from components/ui/*
+- Tailwind for spacing and layout. No inline styles.
+- If a new UI pattern is needed, build a wrapper component in components/form/* or components/pre-register/*.
+
+## Validation & UX
+- Use react-hook-form consistently for forms.
+- Frontend validation is UX-only; backend is the source of truth.
+- Show field-level errors and a top-level submit error area.
+
+## Navigation between steps
+- StepActions handles Back/Next behavior.
+- Step pages must not hardcode navigation UI; they render StepActions and pass handlers.
+- No premature integration with login; keep pre-register flow usable without auth.
+
+## MCP usage
+- Use MCP/Figma frames as reference for layout.
+- Prioritize structural fidelity (grid, spacing, typographic hierarchy) over pixel-perfect replication.
+- When MCP output conflicts with our established FormRow/Stepper patterns, keep our patterns.

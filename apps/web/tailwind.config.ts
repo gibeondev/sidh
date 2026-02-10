@@ -6,8 +6,16 @@ const config: Config = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  // shadcn-style theme keys for future migration
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        'muted-foreground': 'hsl(var(--muted-foreground))',
+      },
+    },
   },
   plugins: [],
 }
