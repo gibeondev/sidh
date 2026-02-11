@@ -1,11 +1,12 @@
 import React from 'react';
 
-export type StepId = 1 | 2 | 3;
+export type StepId = 1 | 2 | 3 | 4;
 
 const STEPS: { id: StepId; label: string }[] = [
   { id: 1, label: 'PROSEDUR PENDAFTARAN' },
   { id: 2, label: 'DATA ORANG TUA/ WALI SISWA' },
   { id: 3, label: 'IDENTITAS SISWA' },
+  { id: 4, label: 'KONFIRMASI' },
 ];
 
 export interface StepperProps {
@@ -18,7 +19,7 @@ export interface StepperProps {
  */
 export function Stepper({ currentStep }: StepperProps) {
   return (
-    <nav aria-label="Registration steps" className="flex flex-wrap items-center justify-center gap-3 py-6">
+    <nav aria-label="Registration steps" className="flex items-center justify-center gap-2 py-6">
       {STEPS.map((step, index) => {
         const isActive = step.id === currentStep;
         const isLast = index === STEPS.length - 1;
