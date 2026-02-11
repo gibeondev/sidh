@@ -1,0 +1,6 @@
+UI LOGIC RULES
+- page.tsx owns state, API calls, navigation
+- step components are presentational only (no fetch)
+- use react-hook-form consistently
+- all API calls go through lib/api/*
+- keep pre-register steps as one form, submit once in step-4

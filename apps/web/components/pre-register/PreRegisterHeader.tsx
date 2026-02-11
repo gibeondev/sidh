@@ -10,7 +10,7 @@ export function PreRegisterHeader() {
       </div>
       <div className="text-center">
         <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-          New Student Pre-Registration Form
+          Formulir Pra-Registrasi Siswa Baru
         </h1>
       </div>
     </header>
