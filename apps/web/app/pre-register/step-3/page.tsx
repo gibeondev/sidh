@@ -1,29 +1,57 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { type PreRegisterRequest } from '@/lib/api/applications';
 import {
   PreRegisterHeader,
   Stepper,
   type StepId,
   Banner,
+  StudentIdentityStep,
   StepActions,
 } from '@/components/pre-register';
 
 const TOTAL_STEPS = 3;
 
 /**
- * Pre-register Step 3: Student Identity (placeholder)
- * TODO: Implement Step 3 content
+ * Pre-register Step 3: Student Identity.
+ * Document-style centered page with generous whitespace; layout matches Step 2.
  */
 export default function PreRegisterStep3Page() {
+  const router = useRouter();
   const [step] = useState<StepId>(3);
+  const [form, setForm] = useState<PreRegisterRequest>({
+    applicantEmail: '',
+    applicantName: '',
+    applicantRelationship: '',
+    reasonLivingAbroad: '',
+    reasonToApply: '',
+    assignmentCity: '',
+    assignmentCountry: '',
+    domicileStartDate: '',
+    domicileEndDate: '',
+    permitExpiryDate: '',
+    programChoice: '',
+    educationLevel: '',
+    gradeApplied: '',
+    studentName: '',
+    studentGender: 'MALE',
+    studentBirthDate: '',
+    lastEducationLocation: '',
+    nisn: '',
+  });
+
+  const update = (field: keyof PreRegisterRequest, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleNext = () => {
-    // TODO: Navigate to next step or submit
+    router.push('/pre-register/step-4');
   };
 
   const handleBack = () => {
-    // TODO: Navigate back to step 2
+    router.push('/pre-register/step-2');
   };
 
   return (
@@ -33,15 +61,26 @@ export default function PreRegisterStep3Page() {
         <Stepper currentStep={step} />
         <Banner />
 
-        <div className="mt-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-          <section aria-labelledby="step3-heading" className="space-y-4">
-            <h2 id="step3-heading" className="text-base font-bold uppercase tracking-wide text-gray-900">
-              TODO Step 3
-            </h2>
-            <p className="text-sm text-gray-600">
-              Student identity step — content to be implemented.
-            </p>
-          </section>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            // TODO: Submit form when API integration is ready
+          }}
+          className="mt-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm"
+        >
+          <StudentIdentityStep
+            data={{
+              programChoice: form.programChoice,
+              educationLevel: form.educationLevel,
+              gradeApplied: form.gradeApplied,
+              studentName: form.studentName,
+              studentGender: form.studentGender,
+              lastEducationLocation: form.lastEducationLocation,
+              studentBirthDate: form.studentBirthDate,
+              nisn: form.nisn,
+            }}
+            onChange={update}
+          />
 
           <StepActions
             step={step}
@@ -50,7 +89,7 @@ export default function PreRegisterStep3Page() {
             onNext={handleNext}
             nextLabel="Lanjut"
           />
-        </div>
+        </form>
       </div>
     </main>
   );

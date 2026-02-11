@@ -9,3 +9,8 @@ export {
   type ParentGuardianData,
   type ParentGuardianStepProps,
 } from './ParentGuardianStep';
+export {
+  StudentIdentityStep,
+  type StudentIdentityData,
+  type StudentIdentityStepProps,
+} from './StudentIdentityStep';
