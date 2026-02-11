@@ -1,18 +1,22 @@
+import Image from 'next/image';
+
 export function PreRegisterHeader() {
   return (
-    <header className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6">
-      <div className="flex flex-col items-center text-center">
-        <div className="relative h-14 w-14 rounded-full bg-gradient-to-br from-green-500 via-blue-500 to-red-500" aria-hidden />
-        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-gray-600">
-          Sekolah Indonesia di
-        </p>
-        <p className="text-xs font-medium uppercase tracking-wide text-gray-600">Nederland</p>
+    <header className="flex flex-col gap-4 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6">
+      <div className="flex min-w-0 justify-start">
+        <Image
+          src="/images/logo.png"
+          alt="Logo Sekolah Indonesia di Nederland"
+          width={70}
+          height={28}
+          className="h-auto w-[60px] sm:w-[70px]"
+          priority
+        />
       </div>
-      <div className="text-center">
-        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-          Formulir Pra-Registrasi Siswa Baru
-        </h1>
-      </div>
+      <h1 className="min-w-0 text-center text-xl font-bold text-gray-900 sm:text-2xl">
+        Formulir Pra-Registrasi Siswa Baru
+      </h1>
+      <div className="hidden min-w-0 sm:block" />
     </header>
   );
 }
