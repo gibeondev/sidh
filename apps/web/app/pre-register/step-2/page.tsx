@@ -51,13 +51,6 @@ export default function PreRegisterStep2Page() {
     setError(null);
   };
 
-  const handleNext = () => {
-    if (step < TOTAL_STEPS) setStep((s) => (s + 1) as StepId);
-  };
-
-  const handleBack = () => {
-    if (step > 1) setStep((s) => (s - 1) as StepId);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,13 +121,8 @@ export default function PreRegisterStep2Page() {
           />
 
           <StepActions
-            step={step}
-            totalSteps={TOTAL_STEPS}
-            onBack={handleBack}
-            onNext={handleNext}
-            nextLabel={step === TOTAL_STEPS ? 'Submit pre-registration' : 'Lanjut'}
-            nextDisabled={step === TOTAL_STEPS ? submitting : false}
-            nextAsSubmit={step === TOTAL_STEPS}
+            currentStep={step}
+            nextLabel="Lanjut"
           />
         </form>
       </div>

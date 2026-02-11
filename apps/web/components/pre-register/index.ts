@@ -14,3 +14,4 @@ export {
   type StudentIdentityData,
   type StudentIdentityStepProps,
 } from './StudentIdentityStep';
+export { RegistrationProcedureStep } from './RegistrationProcedureStep';

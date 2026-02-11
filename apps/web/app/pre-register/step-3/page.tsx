@@ -19,7 +19,6 @@ const TOTAL_STEPS = 3;
  * Document-style centered page with generous whitespace; layout matches Step 2.
  */
 export default function PreRegisterStep3Page() {
-  const router = useRouter();
   const [step] = useState<StepId>(3);
   const [form, setForm] = useState<PreRegisterRequest>({
     applicantEmail: '',
@@ -44,14 +43,6 @@ export default function PreRegisterStep3Page() {
 
   const update = (field: keyof PreRegisterRequest, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleNext = () => {
-    router.push('/pre-register/step-4');
-  };
-
-  const handleBack = () => {
-    router.push('/pre-register/step-2');
   };
 
   return (
@@ -82,13 +73,7 @@ export default function PreRegisterStep3Page() {
             onChange={update}
           />
 
-          <StepActions
-            step={step}
-            totalSteps={TOTAL_STEPS}
-            onBack={handleBack}
-            onNext={handleNext}
-            nextLabel="Lanjut"
-          />
+          <StepActions currentStep={step} nextLabel="Lanjut" />
         </form>
       </div>
     </main>

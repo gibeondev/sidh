@@ -16,15 +16,7 @@ const TOTAL_STEPS = 3;
  * TODO: Implement Step 4 content
  */
 export default function PreRegisterStep4Page() {
-  const [step] = useState<StepId>(3); // Using step 3 for stepper display since StepId only supports 1-3
-
-  const handleNext = () => {
-    // TODO: Navigate to next step or submit
-  };
-
-  const handleBack = () => {
-    // TODO: Navigate back
-  };
+  const [step] = useState<StepId>(4);
 
   return (
     <main className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
@@ -43,13 +35,7 @@ export default function PreRegisterStep4Page() {
             </p>
           </section>
 
-          <StepActions
-            step={step}
-            totalSteps={TOTAL_STEPS}
-            onBack={handleBack}
-            onNext={handleNext}
-            nextLabel="Lanjut"
-          />
+          <StepActions currentStep={step} />
         </div>
       </div>
     </main>
