@@ -34,7 +34,8 @@ class AuthApiClient {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Login failed' }));
-      throw new Error(error.message || 'Login failed');
+      const msg = Array.isArray(error.message) ? error.message.join(' ') : (error.message || 'Login failed');
+      throw new Error(msg);
     }
 
     return response.json();

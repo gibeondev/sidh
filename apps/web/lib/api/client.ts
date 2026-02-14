@@ -27,6 +27,8 @@ export interface RequestOptions {
   method?: string;
   headers?: HeadersInit;
   body?: object;
+  /** Set to 'include' for admin/auth routes to send cookies */
+  credentials?: RequestCredentials;
 }
 
 /**
@@ -36,7 +38,7 @@ export async function request<T>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { method = 'GET', headers: optHeaders, body } = options;
+  const { method = 'GET', headers: optHeaders, body, credentials } = options;
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...optHeaders,
@@ -48,6 +50,7 @@ export async function request<T>(
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      credentials: credentials ?? 'same-origin',
     });
   } catch (error) {
     // Network error (server not running, CORS, etc.)
