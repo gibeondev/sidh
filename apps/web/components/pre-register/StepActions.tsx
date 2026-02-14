@@ -9,6 +9,8 @@ export interface StepActionsProps {
   nextDisabled?: boolean;
   /** When true, the next button submits the form (use on last step) */
   nextAsSubmit?: boolean;
+  /** When set, Next button calls this instead of navigating. Use to validate before going forward. */
+  onNextClick?: () => void;
   className?: string;
 }
 
@@ -42,11 +44,12 @@ export function StepActions({
   nextLabel = 'Lanjut',
   nextDisabled = false,
   nextAsSubmit = false,
+  onNextClick,
   className = '',
 }: StepActionsProps) {
   const router = useRouter();
   const showBack = currentStep > 1;
-  const showNext = currentStep < 4;
+  const showNext = currentStep < 4 || (currentStep === 4 && nextAsSubmit);
 
   const handleBack = () => {
     const previousStep = (currentStep - 1) as StepId;
@@ -54,6 +57,10 @@ export function StepActions({
   };
 
   const handleNext = () => {
+    if (onNextClick) {
+      onNextClick();
+      return;
+    }
     const nextStep = (currentStep + 1) as StepId;
     router.push(getStepRoute(nextStep));
   };

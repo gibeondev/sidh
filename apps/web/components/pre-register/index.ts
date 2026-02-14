@@ -15,3 +15,7 @@ export {
   type StudentIdentityStepProps,
 } from './StudentIdentityStep';
 export { RegistrationProcedureStep } from './RegistrationProcedureStep';
+export {
+  ReviewConfirmStep,
+  type ReviewConfirmStepProps,
+} from './ReviewConfirmStep';
