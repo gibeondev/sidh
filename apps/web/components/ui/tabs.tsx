@@ -55,6 +55,7 @@ function TabsTrigger({ value, children, className = '' }: TabsTriggerProps) {
       type="button"
       role="tab"
       aria-selected={isActive}
+      data-state={isActive ? 'active' : 'inactive'}
       onClick={() => ctx.onValueChange(value)}
       className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 ${
         isActive

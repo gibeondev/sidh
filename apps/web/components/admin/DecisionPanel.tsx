@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { type ApplicationStatus } from '@/lib/api/admin-applications';
 
-type Decision = 'approve' | 'reject' | 'request-changes';
+type Decision = 'approve' | 'reject';
 
 export interface DecisionPanelProps {
   applicationId: string;
@@ -31,10 +31,10 @@ export function DecisionPanel({
   const canDecide = status !== 'APPROVED' && status !== 'REJECTED';
 
   const submit = async (decision: Decision) => {
-    if (decision === 'reject' || decision === 'request-changes') {
+    if (decision === 'reject') {
       const trimmed = note.trim();
       if (!trimmed) {
-        setError('Catatan wajib diisi untuk Menolak atau Minta Perubahan.');
+        setError('Catatan wajib diisi untuk Menolak.');
         return;
       }
     }
@@ -43,10 +43,8 @@ export function DecisionPanel({
     try {
       if (decision === 'approve') {
         await onApprove(applicationId);
-      } else if (decision === 'reject') {
-        await onReject(applicationId, note.trim());
       } else {
-        await onRequestChanges(applicationId, note.trim());
+        await onReject(applicationId, note.trim());
       }
       setActiveDecision(null);
       setNote('');
@@ -74,7 +72,7 @@ export function DecisionPanel({
           {error}
         </p>
       )}
-      {(activeDecision === 'reject' || activeDecision === 'request-changes') && (
+      {activeDecision === 'reject' && (
         <div className="mb-3">
           <label htmlFor="decision-note" className="mb-1 block text-sm font-medium text-gray-700">
             Catatan <span className="text-red-500">*</span>
@@ -83,7 +81,7 @@ export function DecisionPanel({
             id="decision-note"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Wajib diisi untuk menolak atau minta perubahan."
+            placeholder="Wajib diisi untuk menolak."
             rows={3}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             disabled={busy}
@@ -91,17 +89,6 @@ export function DecisionPanel({
         </div>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button
-          onClick={() => {
-            setActiveDecision(activeDecision === 'approve' ? null : 'approve');
-            setError(null);
-            setNote('');
-          }}
-          disabled={busy}
-          variant="outline"
-        >
-          Setujui
-        </Button>
         <Button
           onClick={() => {
             setActiveDecision(activeDecision === 'reject' ? null : 'reject');
@@ -115,22 +102,15 @@ export function DecisionPanel({
         </Button>
         <Button
           onClick={() => {
-            setActiveDecision(activeDecision === 'request-changes' ? null : 'request-changes');
+            setActiveDecision(activeDecision === 'approve' ? null : 'approve');
             setError(null);
+            setNote('');
           }}
           disabled={busy}
           variant="outline"
         >
-          Minta Perubahan
+          Setujui
         </Button>
-        {activeDecision === 'approve' && (
-          <Button
-            onClick={() => submit('approve')}
-            disabled={busy}
-          >
-            {busy ? 'Memproses...' : 'Konfirmasi Setujui'}
-          </Button>
-        )}
         {activeDecision === 'reject' && (
           <Button
             onClick={() => submit('reject')}
@@ -140,12 +120,12 @@ export function DecisionPanel({
             {busy ? 'Memproses...' : 'Konfirmasi Tolak'}
           </Button>
         )}
-        {activeDecision === 'request-changes' && (
+        {activeDecision === 'approve' && (
           <Button
-            onClick={() => submit('request-changes')}
-            disabled={busy || !note.trim()}
+            onClick={() => submit('approve')}
+            disabled={busy}
           >
-            {busy ? 'Memproses...' : 'Kirim Permintaan Perubahan'}
+            {busy ? 'Memproses...' : 'Konfirmasi Setujui'}
           </Button>
         )}
       </div>
