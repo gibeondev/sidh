@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ApplicationStatus, Prisma, RegistrationPeriodStatus, StudentGender } from '@prisma/client';
 import { PreRegisterDto } from './dto/pre-register.dto';
 import { DecisionNoteDto } from './dto/decision.dto';
+import { InternalNoteDto } from './dto/internal-note.dto';
 
 @Injectable()
 export class ApplicationsService {
@@ -227,6 +228,24 @@ export class ApplicationsService {
       where: { id },
       data: { status: ApplicationStatus.CHANGES_REQUESTED, decisionReason: dto.note },
       include: { preRegistration: true },
+    });
+  }
+
+  /** Admin: update internal note (Catatan Internal) on pre-registration */
+  async adminUpdateInternalNote(id: string, dto: InternalNoteDto) {
+    const app = await this.prisma.application.findUnique({
+      where: { id },
+      include: { preRegistration: true },
+    });
+    if (!app || !app.preRegistration) throw new NotFoundException('Application not found');
+    const note = dto.note != null ? String(dto.note) : null;
+    await this.prisma.applicationPreRegistration.update({
+      where: { applicationId: id },
+      data: { note: note || null },
+    });
+    return this.prisma.application.findUnique({
+      where: { id },
+      include: { preRegistration: true, registrationPeriod: true },
     });
   }
 

@@ -13,6 +13,8 @@ export interface DecisionPanelProps {
   onReject: (id: string, note: string) => Promise<void>;
   onRequestChanges: (id: string, note: string) => Promise<void>;
   onSuccess?: () => void;
+  /** When true, no section box, no "Keputusan" header, no separator — for inline use below form. */
+  inline?: boolean;
 }
 
 export function DecisionPanel({
@@ -22,6 +24,7 @@ export function DecisionPanel({
   onReject,
   onRequestChanges,
   onSuccess,
+  inline = false,
 }: DecisionPanelProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +60,13 @@ export function DecisionPanel({
   };
 
   if (!canDecide) {
+    if (inline) {
+      return (
+        <span className="text-sm text-gray-500">
+          Keputusan sudah dibuat (status: {status === 'APPROVED' ? 'Disetujui' : 'Ditolak'}).
+        </span>
+      );
+    }
     return (
       <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
         Keputusan sudah dibuat (status: {status === 'APPROVED' ? 'Disetujui' : 'Ditolak'}).
@@ -64,9 +74,9 @@ export function DecisionPanel({
     );
   }
 
-  return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-semibold text-gray-900">Keputusan</h3>
+  const content = (
+    <>
+      {!inline && <h3 className="mb-3 text-sm font-semibold text-gray-900">Keputusan</h3>}
       {error && (
         <p className="mb-3 text-sm text-red-600" role="alert">
           {error}
@@ -89,28 +99,44 @@ export function DecisionPanel({
         </div>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button
-          onClick={() => {
-            setActiveDecision(activeDecision === 'reject' ? null : 'reject');
-            setError(null);
-          }}
-          disabled={busy}
-          variant="outline"
-          className="border-red-200 text-red-700 hover:bg-red-50"
-        >
-          Tolak
-        </Button>
-        <Button
-          onClick={() => {
-            setActiveDecision(activeDecision === 'approve' ? null : 'approve');
-            setError(null);
-            setNote('');
-          }}
-          disabled={busy}
-          variant="outline"
-        >
-          Setujui
-        </Button>
+        {activeDecision === null ? (
+          <>
+            <Button
+              onClick={() => {
+                setActiveDecision('reject');
+                setError(null);
+              }}
+              disabled={busy}
+              variant="outline"
+              className="border-red-200 text-red-700 hover:bg-red-50"
+            >
+              Tolak
+            </Button>
+            <Button
+              onClick={() => {
+                setActiveDecision('approve');
+                setError(null);
+                setNote('');
+              }}
+              disabled={busy}
+              variant="outline"
+            >
+              Setujui
+            </Button>
+          </>
+        ) : (
+          <Button
+            onClick={() => {
+              setActiveDecision(null);
+              setError(null);
+              setNote('');
+            }}
+            disabled={busy}
+            variant="outline"
+          >
+            Batalkan
+          </Button>
+        )}
         {activeDecision === 'reject' && (
           <Button
             onClick={() => submit('reject')}
@@ -129,6 +155,16 @@ export function DecisionPanel({
           </Button>
         )}
       </div>
+    </>
+  );
+
+  if (inline) {
+    return <div>{content}</div>;
+  }
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
+      {content}
     </div>
   );
 }

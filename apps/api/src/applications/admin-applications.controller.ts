@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -10,6 +11,7 @@ import {
 import { ApplicationStatus } from '@prisma/client';
 import { ApplicationsService } from './applications.service';
 import { DecisionNoteDto } from './dto/decision.dto';
+import { InternalNoteDto } from './dto/internal-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -68,6 +70,11 @@ export class AdminApplicationsController {
   @Post(':id/request-changes')
   async requestChanges(@Param('id') id: string, @Body() dto: DecisionNoteDto) {
     return this.applicationsService.adminRequestChanges(id, dto);
+  }
+
+  @Patch(':id/internal-note')
+  async updateInternalNote(@Param('id') id: string, @Body() dto: InternalNoteDto) {
+    return this.applicationsService.adminUpdateInternalNote(id, dto);
   }
 
   private isApplicationStatus(s: string): boolean {

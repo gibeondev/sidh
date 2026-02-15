@@ -99,6 +99,7 @@ model ApplicationPreRegistration {
   studentBirthDate       DateTime     @map("student_birth_date") @db.Date
   lastEducationLocation  String       @map("last_education_location")
   nisn                   String?      @map("nisn")
+  note                   String?      @map("note")
 
   application            Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 

@@ -7,6 +7,7 @@ import {
   approveApplication,
   rejectApplication,
   requestChangesApplication,
+  updateInternalNote,
   ApiError,
   type ApplicationDetail,
 } from '@/lib/api/admin-applications';
@@ -197,7 +198,15 @@ export default function AdminApplicationDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('formulir');
+  const [internalNote, setInternalNote] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
   const decisionPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (data?.preRegistration) {
+      setInternalNote(data.preRegistration.note ?? '');
+    }
+  }, [data?.preRegistration?.note, data?.id]);
 
   const fetchDetail = useCallback(async (applicationId: string) => {
     setLoading(true);
@@ -235,6 +244,17 @@ export default function AdminApplicationDetailPage({
 
   const scrollToDecisionPanel = () => {
     decisionPanelRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSaveInternalNote = async () => {
+    if (!id) return;
+    setSavingNote(true);
+    try {
+      await updateInternalNote(id, internalNote);
+      await fetchDetail(id);
+    } finally {
+      setSavingNote(false);
+    }
   };
 
   if (!id || loading) {
@@ -292,25 +312,25 @@ export default function AdminApplicationDetailPage({
         <span className="font-medium text-gray-900">INFORMASI DETAIL</span>
       </nav>
 
-      {/* Header card: 3-column grid, compact, same baseline */}
+      {/* Header card: 3-column grid, Status + badge one row, aligned with Tolak/Setujui */}
       <div className="rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
           {/* Left: meta + reference */}
           <div className="min-w-0">
             <p className="text-xs text-gray-500">Aplikasi ({formatDateTime(submittedAt)})</p>
             <p className="text-lg font-bold text-gray-900">#{data.applicationNo}</p>
           </div>
-          {/* Middle: Status label + dropdown-like badge with caret */}
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-xs font-medium text-gray-500">Status</span>
-            <div className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1">
+          {/* Middle: Status and pulldown on one row, same height as buttons */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Status</span>
+            <div className="inline-flex h-9 min-w-[7rem] items-center justify-between gap-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
               <StatusBadge status={data.status} />
-              <svg className="h-3.5 w-3.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <svg className="h-3.5 w-3.5 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </div>
           </div>
-          {/* Right: actions + icon buttons */}
+          {/* Right: actions + icon buttons (aligned with Status row) */}
           <div className="flex items-center justify-end gap-2">
             {canDecide && (
               <>
@@ -349,34 +369,32 @@ export default function AdminApplicationDetailPage({
         </div>
       </div>
 
-      {/* Tabs: 3 separate pill buttons with gaps, outline inactive / filled dark active */}
+      {/* Tabs: classic tab bar, no gap to content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-center gap-2">
-          <TabsList className="inline-flex h-10 items-center gap-2 rounded-none border-0 bg-transparent p-0 shadow-none">
-            <TabsTrigger
-              value="formulir"
-              className="rounded-full border px-5 py-2 text-sm font-medium data-[state=active]:!border-transparent data-[state=active]:!bg-gray-900 data-[state=active]:!text-white data-[state=inactive]:border-gray-300 data-[state=inactive]:!bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:!bg-gray-50"
-            >
-              Formulir
-            </TabsTrigger>
-            <TabsTrigger
-              value="catatan"
-              className="rounded-full border px-5 py-2 text-sm font-medium data-[state=active]:!border-transparent data-[state=active]:!bg-gray-900 data-[state=active]:!text-white data-[state=inactive]:border-gray-300 data-[state=inactive]:!bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:!bg-gray-50"
-            >
-              Catatan Internal
-            </TabsTrigger>
-            <TabsTrigger
-              value="riwayat"
-              className="rounded-full border px-5 py-2 text-sm font-medium data-[state=active]:!border-transparent data-[state=active]:!bg-gray-900 data-[state=active]:!text-white data-[state=inactive]:border-gray-300 data-[state=inactive]:!bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:!bg-gray-50"
-            >
-              Riwayat Aktivitas
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="inline-flex h-11 w-full items-end justify-center rounded-t-xl rounded-b-none border border-b-0 border-gray-200 bg-white p-0 shadow-sm">
+          <TabsTrigger
+            value="formulir"
+            className="rounded-none border-b-2 border-transparent bg-transparent px-5 pb-3 pt-3 text-sm font-medium text-gray-500 data-[state=active]:!border-gray-900 data-[state=active]:!bg-transparent data-[state=active]:!text-gray-900 data-[state=inactive]:hover:!text-gray-700"
+          >
+            Formulir
+          </TabsTrigger>
+          <TabsTrigger
+            value="catatan"
+            className="rounded-none border-b-2 border-transparent bg-transparent px-5 pb-3 pt-3 text-sm font-medium text-gray-500 data-[state=active]:!border-gray-900 data-[state=active]:!bg-transparent data-[state=active]:!text-gray-900 data-[state=inactive]:hover:!text-gray-700"
+          >
+            Catatan Internal
+          </TabsTrigger>
+          <TabsTrigger
+            value="riwayat"
+            className="rounded-none border-b-2 border-transparent bg-transparent px-5 pb-3 pt-3 text-sm font-medium text-gray-500 data-[state=active]:!border-gray-900 data-[state=active]:!bg-transparent data-[state=active]:!text-gray-900 data-[state=inactive]:hover:!text-gray-700"
+          >
+            Riwayat Aktivitas
+          </TabsTrigger>
+        </TabsList>
 
         {/* Tab: Formulir */}
-        <TabsContent value="formulir" className="mt-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <TabsContent value="formulir" className="mt-0">
+          <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white p-8 shadow-sm">
             {/* Section 1: DATA ORANG TUA / WALI SISWA */}
             <AdminCardSection title="Data Orang Tua / Wali Siswa" className="mb-14">
               <div className="space-y-0">
@@ -436,8 +454,8 @@ export default function AdminApplicationDetailPage({
               </div>
             </AdminCardSection>
 
-            {/* Decision panel */}
-            <div ref={decisionPanelRef} className="mt-12 border-t border-gray-200 pt-8">
+            {/* Decision buttons: close below last row, no separator or box */}
+            <div ref={decisionPanelRef} className="mt-6 flex justify-end">
               <DecisionPanel
                 applicationId={data.id}
                 status={data.status}
@@ -445,19 +463,36 @@ export default function AdminApplicationDetailPage({
                 onReject={handleReject}
                 onRequestChanges={handleRequestChanges}
                 onSuccess={() => fetchDetail(data.id)}
+                inline
               />
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="catatan" className="mt-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-            <p className="text-sm text-gray-500">Catatan internal (belum diimplementasi).</p>
+        <TabsContent value="catatan" className="mt-0">
+          <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white p-8 shadow-sm">
+            <label htmlFor="internal-note" className="mb-2 block text-sm font-medium text-gray-900">
+              Catatan Internal
+            </label>
+            <textarea
+              id="internal-note"
+              value={internalNote}
+              onChange={(e) => setInternalNote(e.target.value)}
+              placeholder="Tambah catatan internal untuk aplikasi ini..."
+              rows={6}
+              className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+              disabled={savingNote}
+            />
+            <div className="flex justify-end">
+              <Button onClick={handleSaveInternalNote} disabled={savingNote}>
+                {savingNote ? 'Menyimpan...' : 'Simpan'}
+              </Button>
+            </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="riwayat" className="mt-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <TabsContent value="riwayat" className="mt-0">
+          <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white p-8 shadow-sm">
             <p className="text-sm text-gray-500">Riwayat aktivitas (belum diimplementasi).</p>
           </div>
         </TabsContent>

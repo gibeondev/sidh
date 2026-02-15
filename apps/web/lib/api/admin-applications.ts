@@ -31,6 +31,8 @@ export interface ApplicationPreRegistration {
   studentBirthDate: string;
   lastEducationLocation: string;
   nisn: string | null;
+  /** Catatan Internal (admin-only) */
+  note: string | null;
 }
 
 export interface ApplicationListItem {
@@ -126,6 +128,17 @@ export async function rejectApplication(id: string, note: string): Promise<Appli
 export async function requestChangesApplication(id: string, note: string): Promise<ApplicationDetail> {
   return request<ApplicationDetail>(`/admin/applications/${id}/request-changes`, {
     method: 'POST',
+    body: { note },
+    credentials,
+  });
+}
+
+export async function updateInternalNote(
+  id: string,
+  note: string
+): Promise<ApplicationDetail> {
+  return request<ApplicationDetail>(`/admin/applications/${id}/internal-note`, {
+    method: 'PATCH',
     body: { note },
     credentials,
   });
