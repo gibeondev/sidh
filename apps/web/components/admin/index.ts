@@ -5,3 +5,4 @@ export { AdminSidebar } from './AdminSidebar';
 export { DecisionPanel } from './DecisionPanel';
 export { RejectDialog } from './RejectDialog';
 export { DocumentViewerDialog } from './DocumentViewerDialog';
+export { StatusChangeDialog } from './StatusChangeDialog';

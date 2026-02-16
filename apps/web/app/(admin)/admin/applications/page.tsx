@@ -17,7 +17,6 @@ import { AdminPageHeader, StatusBadge } from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -27,15 +26,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-const TAB_STATUS: Record<string, ApplicationStatus | ''> = {
-  all: '',
-  baru: 'SUBMITTED',
-  ditinjau: 'UNDER_REVIEW',
-  disetujui: 'APPROVED',
-  ditolak: 'REJECTED',
-};
-
 const PAGE_SIZE = 10;
+
+type StatusFilterValue = ApplicationStatus | '' | 'BARU';
+
+const STATUS_OPTIONS: { value: StatusFilterValue; label: string }[] = [
+  { value: '', label: 'Semua Status' },
+  { value: 'BARU', label: 'Baru' },
+  { value: 'UNDER_REVIEW', label: 'Sedang Ditinjau' },
+  { value: 'APPROVED', label: 'Disetujui' },
+  { value: 'REJECTED', label: 'Ditolak' },
+];
 
 function SortHeader({
   label,
@@ -99,10 +100,10 @@ function formatDate(iso: string | null): string {
 }
 
 export default function AdminApplicationsPage() {
-  const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState<StatusFilterValue>('');
   const [program, setProgram] = useState('');
   const [country, setCountry] = useState('');
   const [sortBy, setSortBy] = useState<AdminSortField | undefined>(undefined);
@@ -112,25 +113,108 @@ export default function AdminApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const statusParam = TAB_STATUS[tab] || undefined;
-
   const fetchList = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getAdminApplications({
-        status: statusParam,
-        page,
-        limit: PAGE_SIZE,
-        search: search || undefined,
-        program: program || undefined,
-        country: country || undefined,
-        sortBy: sortBy ?? 'createdAt',
-        sortOrder: sortBy ? sortOrder : 'desc',
-      });
-      setData(res);
-      if (res.filterOptions) {
-        setFilterOptions(res.filterOptions);
+      // When "BARU" is selected, fetch both DRAFT and SUBMITTED
+      if (status === 'BARU') {
+        const [draftRes, submittedRes] = await Promise.all([
+          getAdminApplications({
+            status: 'DRAFT',
+            page: 1,
+            limit: 1000, // Fetch all to merge
+            search: search || undefined,
+            program: program || undefined,
+            country: country || undefined,
+            sortBy: sortBy ?? 'createdAt',
+            sortOrder: sortBy ? sortOrder : 'desc',
+          }),
+          getAdminApplications({
+            status: 'SUBMITTED',
+            page: 1,
+            limit: 1000, // Fetch all to merge
+            search: search || undefined,
+            program: program || undefined,
+            country: country || undefined,
+            sortBy: sortBy ?? 'createdAt',
+            sortOrder: sortBy ? sortOrder : 'desc',
+          }),
+        ]);
+
+        // Merge results
+        const mergedItems = [...(draftRes.items || []), ...(submittedRes.items || [])];
+        
+        // Sort merged items
+        const sortField = sortBy ?? 'createdAt';
+        mergedItems.sort((a, b) => {
+          let aVal: any;
+          let bVal: any;
+          
+          if (sortField === 'createdAt' || sortField === 'submittedAt') {
+            aVal = sortField === 'submittedAt' ? (a.submittedAt ?? a.createdAt) : a.createdAt;
+            bVal = sortField === 'submittedAt' ? (b.submittedAt ?? b.createdAt) : b.createdAt;
+            aVal = aVal ? new Date(aVal).getTime() : 0;
+            bVal = bVal ? new Date(bVal).getTime() : 0;
+          } else if (sortField === 'status') {
+            aVal = a.status ?? '';
+            bVal = b.status ?? '';
+          } else if (sortField === 'applicationNo') {
+            aVal = a.applicationNo ?? '';
+            bVal = b.applicationNo ?? '';
+          } else {
+            const prA = a.preRegistration;
+            const prB = b.preRegistration;
+            if (sortField === 'studentName') {
+              aVal = prA?.studentName ?? '';
+              bVal = prB?.studentName ?? '';
+            } else if (sortField === 'programChoice') {
+              aVal = prA?.programChoice ?? '';
+              bVal = prB?.programChoice ?? '';
+            } else if (sortField === 'assignmentCountry') {
+              aVal = prA?.assignmentCountry ?? '';
+              bVal = prB?.assignmentCountry ?? '';
+            } else {
+              aVal = '';
+              bVal = '';
+            }
+          }
+          
+          if (sortOrder === 'asc') {
+            return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+          } else {
+            return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+          }
+        });
+
+        // Paginate merged results
+        const total = mergedItems.length;
+        const startIndex = (page - 1) * PAGE_SIZE;
+        const endIndex = startIndex + PAGE_SIZE;
+        const paginatedItems = mergedItems.slice(startIndex, endIndex);
+
+        setData({
+          items: paginatedItems,
+          total,
+          page,
+          limit: PAGE_SIZE,
+          filterOptions: draftRes.filterOptions || submittedRes.filterOptions,
+        });
+      } else {
+        const res = await getAdminApplications({
+          status: status === '' ? undefined : (status as ApplicationStatus),
+          page,
+          limit: PAGE_SIZE,
+          search: search || undefined,
+          program: program || undefined,
+          country: country || undefined,
+          sortBy: sortBy ?? 'createdAt',
+          sortOrder: sortBy ? sortOrder : 'desc',
+        });
+        setData(res);
+        if (res.filterOptions) {
+          setFilterOptions(res.filterOptions);
+        }
       }
     } catch (e) {
       setData(null);
@@ -138,7 +222,7 @@ export default function AdminApplicationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusParam, page, search, program, country, sortBy, sortOrder]);
+  }, [status, page, search, program, country, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchList();
@@ -161,6 +245,7 @@ export default function AdminApplicationsPage() {
   };
 
   const clearFilters = async () => {
+    setStatus('');
     setProgram('');
     setCountry('');
     setPage(1);
@@ -168,7 +253,7 @@ export default function AdminApplicationsPage() {
     setError(null);
     try {
       const res = await getAdminApplications({
-        status: statusParam,
+        status: undefined,
         page: 1,
         limit: PAGE_SIZE,
         search: search || undefined,
@@ -203,16 +288,7 @@ export default function AdminApplicationsPage() {
         title="Pra-Registrasi"
       />
 
-      <Tabs value={tab} onValueChange={(v) => { setTab(v); setPage(1); }}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="all"><span className="uppercase">Semua</span></TabsTrigger>
-          <TabsTrigger value="baru"><span className="uppercase">Baru</span></TabsTrigger>
-          <TabsTrigger value="ditinjau"><span className="uppercase">Sedang Ditinjau</span></TabsTrigger>
-          <TabsTrigger value="disetujui"><span className="uppercase">Disetujui</span></TabsTrigger>
-          <TabsTrigger value="ditolak"><span className="uppercase">Ditolak</span></TabsTrigger>
-        </TabsList>
-
-        <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
           <form onSubmit={handleSearchSubmit} className="relative flex flex-1 min-w-[240px] max-w-md">
             <span className="sr-only">Cari Nama / No.</span>
             <Input
@@ -241,6 +317,12 @@ export default function AdminApplicationsPage() {
             </svg>
             Hapus filter
           </Button>
+          <Select
+            options={STATUS_OPTIONS}
+            className="w-[150px]"
+            value={status}
+            onChange={(e) => { setStatus(e.target.value as StatusFilterValue); setPage(1); }}
+          />
           <Select
             options={[{ value: '', label: 'Semua Program' }, ...filterOptions.programs.map((p) => ({ value: p, label: p }))]}
             className="w-[130px]"
@@ -278,25 +360,19 @@ export default function AdminApplicationsPage() {
                 <TableHead>
                   <SortHeader label="Status" sortKey="status" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-14">
-                  <span className="sr-only">Download</span>
-                  <svg className="inline h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-12 text-gray-500">
                     Memuat...
                   </TableCell>
                 </TableRow>
               )}
               {!loading && error && (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-6">
+                  <TableCell colSpan={7} className="py-6">
                     <div className="flex flex-wrap items-center justify-center gap-2 text-red-600">
                       <span>{error}</span>
                       <Button type="button" variant="outline" size="sm" onClick={() => fetchList()}>
@@ -308,7 +384,7 @@ export default function AdminApplicationsPage() {
               )}
               {!loading && !error && items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-12 text-gray-500">
                     Tidak ada data aplikasi.
                   </TableCell>
                 </TableRow>
@@ -414,7 +490,6 @@ export default function AdminApplicationsPage() {
               </div>
           )}
         </div>
-      </Tabs>
     </div>
   );
 }
@@ -448,13 +523,6 @@ function ApplicationRow({
       <TableCell>{formatDate(row.submittedAt ?? row.createdAt)}</TableCell>
       <TableCell>
         <StatusBadge status={row.status} />
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="text-gray-400 hover:text-teal-600" aria-label="Download" title="Download (belum diimplementasi)">
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-        </button>
       </TableCell>
     </TableRow>
   );

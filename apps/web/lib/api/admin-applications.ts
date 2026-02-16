@@ -144,4 +144,16 @@ export async function updateInternalNote(
   });
 }
 
+export async function updateApplicationStatus(
+  id: string,
+  status: ApplicationStatus,
+  decisionReason?: string
+): Promise<ApplicationDetail> {
+  return request<ApplicationDetail>(`/admin/applications/${id}/status`, {
+    method: 'PATCH',
+    body: { status, decisionReason },
+    credentials,
+  });
+}
+
 export { ApiError };

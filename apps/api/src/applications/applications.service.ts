@@ -9,6 +9,7 @@ import { ApplicationStatus, Prisma, RegistrationPeriodStatus, StudentGender } fr
 import { PreRegisterDto } from './dto/pre-register.dto';
 import { DecisionNoteDto } from './dto/decision.dto';
 import { InternalNoteDto } from './dto/internal-note.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 @Injectable()
 export class ApplicationsService {
@@ -245,6 +246,24 @@ export class ApplicationsService {
     });
     return this.prisma.application.findUnique({
       where: { id },
+      include: { preRegistration: true, registrationPeriod: true },
+    });
+  }
+
+  /** Admin: update application status (no constraints) */
+  async adminUpdateStatus(id: string, dto: UpdateStatusDto) {
+    const app = await this.prisma.application.findUnique({
+      where: { id },
+      include: { preRegistration: true },
+    });
+    if (!app || !app.preRegistration) throw new NotFoundException('Application not found');
+    
+    return this.prisma.application.update({
+      where: { id },
+      data: {
+        status: dto.status,
+        decisionReason: dto.decisionReason || null,
+      },
       include: { preRegistration: true, registrationPeriod: true },
     });
   }
