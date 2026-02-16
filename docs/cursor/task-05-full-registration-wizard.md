@@ -1,198 +1,166 @@
-# Task 05 — Full Registration Wizard (Phase 1)
+# Task UI — Full Registration Wizard
 
-## 0) Purpose
-This task implements the **Full Registration Wizard**, allowing an authenticated **PARENT**
-to complete all required registration data for an application after invitation onboarding.
+## Purpose
 
-It enables:
-- Step-by-step data entry
-- Draft saving
-- Final submission for admin review
+Implement the Full Registration multi-step wizard using the Pre-registration module as the architectural and UI blueprint.
 
-No document upload or admin review is implemented in this task.
+The Full Registration Wizard must:
+- Follow the exact same layout, look & feel, spacing, typography and structure as Pre-registration.
+- Use the same shared component strategy (FormRow, Stepper, Header, StepActions).
+- Use react-hook-form with a single shared form state across all steps.
+- Include field-level validation before allowing navigation to the next step.
+- Map fields exactly to the MCP Desktop Figma design.
+- Persist data only on final submit (or draft-save if backend supports it).
 
----
-
-## 1) Scope
-
-### 1.1 In Scope
-Backend (apps/api):
-- Full registration persistence
-- Parent-owned application editing
-- Draft save behavior
-- Submit action (status transition to SUBMITTED)
-- Validation per Data Dictionary
-
-Frontend (apps/web):
-- Multi-step registration wizard (minimal UI)
-- Draft save behavior
-- Submit confirmation
-
-### 1.2 Out of Scope
-- Document upload
-- Admin review or decision
-- Student creation
-- Invitation logic
-- Registration period creation logic (already implemented)
+This task builds the complete parent-side full registration flow.
 
 ---
 
-## 2) Inputs (Authoritative Specs)
-Implementation must follow:
-- `docs/specs/01-narrative-phase1.md`
-- `docs/specs/02-contract-skeleton-phase1.md`
-- `docs/specs/03-rbac-matrix-phase1.md`
-- `docs/specs/04-api-surface-phase1.md`
-- `docs/specs/05-data-dictionary-phase1.md`
-- `docs/specs/06-status-transitions-phase1.md`
-- `docs/specs/08-technical-architecture-phase1.md`
+## Blueprint Reference (Mandatory)
+
+Use the working Pre-registration implementation as reference:
+
+- Same FormRow 2-column layout
+- Same Stepper visual structure
+- Same header positioning
+- Same button placement
+- Same spacing scale
+- Same Tailwind + shadcn usage
+- Same react-hook-form pattern
+- Same centralized API client structure
+
+Full registration must feel like the same product — just extended.
 
 ---
 
-## 3) Backend Implementation Requirements
+## Scope
 
-### 3.1 Module
-Use or extend the existing `applications` module containing:
-- parent controller
-- service
-- DTOs
+### In Scope
 
-Controllers must remain thin.
+Frontend only (apps/web):
 
----
+1) Create full registration route group:
+   app/(parent)/applications/[id]/wizard/
+     step-1/page.tsx
+     step-2/page.tsx
+     step-3/page.tsx
+     step-4/page.tsx
+     step-5/page.tsx (if required by MCP design)
 
-### 3.2 Data models
-Use existing models:
-- `Application`
-- `RegistrationSubmission`
-- `ApplicationContact`
+2) Implement shared layout:
+   - wizard/layout.tsx
+   - Wrap all steps with a single FormProvider (react-hook-form)
 
-Rules:
-- `RegistrationSubmission` is 1:1 with `Application`
-- `ApplicationContact` may be 1:N per application
-- Use Prisma migrations only if new tables are required
+3) Implement shared wizard components:
+   - Reuse existing FormRow
+   - Reuse Stepper pattern (adapt number of steps)
+   - Reuse StepActions
+   - Reuse Header structure
+   - Do NOT create duplicate component variants
 
----
+4) Implement step components under:
+   components/full-registration/steps/
 
-### 3.3 Edit permissions
-Parents may edit full registration data only when:
-- They own the application
-- `application.status IN (DRAFT, CHANGES_REQUESTED)`
-- Registration period is OPEN
+   Suggested structure:
+   - StudentDataStep.tsx
+   - ParentGuardianStep.tsx
+   - AddressStep.tsx
+   - EducationHistoryStep.tsx
+   - ReviewSubmitStep.tsx
 
-Any violation must result in 403.
+5) Validation
+   - Each step must validate required fields before allowing navigation to next step.
+   - Use react-hook-form validation (no new validation library).
+   - Do not allow Next if invalid.
+   - Show field-level error messages.
 
----
+6) Field Mapping
+   - Field names and types must match the selected MCP Desktop Figma design.
+   - Payload mapping must follow backend DTO (if already defined).
+   - Do NOT guess field names.
 
-### 3.4 API Endpoints (must match API surface)
-
-Implement parent endpoints:
-GET /parent/applications/:id
-PATCH /parent/applications/:id
-POST /parent/applications/:id/submit
-
-
-Behavior:
-- `GET`: return current full registration state
-- `PATCH`: save partial data (draft)
-- `POST submit`: validate all required fields and transition status
-
----
-
-### 3.5 Validation rules
-- DTO-based validation with class-validator
-- Partial validation allowed for PATCH (draft)
-- Full validation enforced on submit
-- Required fields per Data Dictionary
+7) Submission
+   - Final step submits full registration via API.
+   - Use centralized API client:
+     apps/web/lib/api/fullRegistration.ts
+   - Show loading state.
+   - Redirect or show success message based on backend behavior.
 
 ---
 
-### 3.6 Status handling
-- Editing does NOT change status
-- Submitting triggers transition:
-  - `DRAFT / CHANGES_REQUESTED → SUBMITTED`
-- `submitted_at` must be set on submit
+## Out of Scope
+
+- Backend schema changes
+- Invitation flow changes
+- Admin review logic
+- Document upload (unless included in MCP step design)
+- New UI libraries
 
 ---
 
-## 4) Frontend Implementation (apps/web)
+## Inputs
 
-### 4.1 Wizard structure
-Create a minimal multi-step wizard that:
-- Loads application data
-- Splits fields into logical steps (free grouping)
-- Allows saving between steps
-- Allows final submission
-
-Rules:
-- No design polish required
-- No document upload in this task
-- Focus on correctness, not UX perfection
+- Selected MCP Desktop frames (Full Registration Steps)
+- docs/specs/09-ui-guidelines-phase1.md
+- docs/specs/10-ui-routes-and-pages-phase1.md
+- Existing Pre-registration implementation (blueprint)
+- Backend DTO for full registration (if available)
 
 ---
 
-### 4.2 Draft behavior
-- Saving a step triggers PATCH
-- Navigation between steps allowed
-- Data persists across reloads
+## UI & Architecture Rules (Mandatory)
+
+1) Do NOT break Pre-registration.
+2) Do NOT duplicate Stepper/Header/FormRow.
+3) Use same spacing and visual rhythm.
+4) Use same 2-column FormRow grid layout.
+5) Use shadcn inputs consistently.
+6) All API calls must go through lib/api.
+7) No inline fetch calls in components.
+8) Keep Indonesian labels consistent.
 
 ---
 
-### 4.3 Submit behavior
-- Final submit triggers POST submit
-- Show confirmation on success
-- Show validation errors if any required field is missing
+## Validation Rules
+
+- Required fields must block Next.
+- Email must match standard email pattern.
+- Date fields must be valid dates.
+- Numeric identifiers must be numeric only.
+- Phone numbers must allow digits and optional "+".
+- Select fields must require valid option.
+- Cross-field validation where required (e.g., date ranges).
+
+At the end of implementation, output:
+- A list of all fields and their validation rules.
 
 ---
 
-## 5) Testing & Verification
+## Deliverables
 
-### 5.1 Backend checks
-- Parent cannot edit non-owned application
-- Parent cannot edit when status not allowed
-- PATCH saves partial data
-- SUBMIT enforces full validation
-- Status transitions correctly to SUBMITTED
-
-### 5.2 Manual flow
-1. Invite parent and log in
-2. Open application
-3. Fill some fields and save
-4. Reload and verify persistence
-5. Submit application
-6. Verify status is SUBMITTED
+- Multi-step full registration wizard.
+- Shared form state across steps.
+- Proper step validation before navigation.
+- Final submission wired to backend.
+- No UI duplication.
+- Visual consistency with Pre-registration.
 
 ---
 
-## 6) Acceptance Criteria
+## Acceptance Criteria
 
-This task is complete when:
-- Full registration data is persisted correctly
-- Parents can save drafts
-- Parents can submit applications
-- Status transitions correctly
-- No document upload or admin logic exists yet
-
----
-
-## 7) Guardrails
-- Do not implement document upload
-- Do not implement admin review
-- Do not create student records
-- Do not change RBAC rules
-- Do not auto-approve applications
+- pnpm typecheck passes.
+- Full flow works:
+  Step 1 → Step 2 → Step 3 → Step 4 → Submit.
+- No data loss when navigating back and forth.
+- All validations block navigation correctly.
+- API submission succeeds (if backend ready).
+- UI matches Pre-registration style 1:1.
 
 ---
 
-## 8) Task Completion Rule
-Once completed:
-- Parents can fully complete registration data
-- Applications are ready for document upload
-- Project is ready for **Task 06: Documents Upload**
+## Notes
 
----
+This module must look and behave as a natural continuation of Pre-registration.
 
-### Status
-Ready for execution in Cursor
-
-
+It is not a redesign — it is an expansion.

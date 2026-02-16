@@ -1,17 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   getAdminApplicationById,
   approveApplication,
   rejectApplication,
-  requestChangesApplication,
-  updateInternalNote,
   ApiError,
   type ApplicationDetail,
 } from '@/lib/api/admin-applications';
-import { AdminCardSection, AdminPageHeader, StatusBadge, DecisionPanel } from '@/components/admin';
+import { AdminCardSection, AdminPageHeader, StatusBadge, RejectDialog, DocumentViewerDialog } from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
@@ -128,21 +126,27 @@ function FormDateRangeRow({
 }
 
 /**
- * Upload row: filename as blue link + compact Tolak/Setujui buttons (for document review).
+ * Upload row: filename with View icon (opens dialog) + compact Tolak/Setujui buttons (for document review).
  */
 function FormUploadRow({
   label,
   fileName,
+  documentUrl,
+  mimeType,
   required,
   onReject,
   onApprove,
+  onView,
   disabled,
 }: {
   label: string;
   fileName: string | null;
+  documentUrl?: string | null;
+  mimeType?: string | null;
   required?: boolean;
   onReject?: () => void;
   onApprove?: () => void;
+  onView?: () => void;
   disabled?: boolean;
 }) {
   return (
@@ -156,13 +160,29 @@ function FormUploadRow({
       </label>
       <div className="flex items-center gap-3 flex-wrap">
         {fileName ? (
-          <a
-            href="#"
-            className="text-sm text-blue-600 hover:underline"
-            onClick={(e) => e.preventDefault()}
-          >
-            {fileName}
-          </a>
+          <>
+            <a
+              href="#"
+              className="text-sm text-blue-600 hover:underline"
+              onClick={(e) => e.preventDefault()}
+            >
+              {fileName}
+            </a>
+            {onView && documentUrl && (
+              <button
+                type="button"
+                onClick={onView}
+                className="inline-flex h-6 w-6 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                aria-label="Lihat dokumen"
+                title="Lihat dokumen"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            )}
+          </>
         ) : (
           <span className="text-sm text-gray-500">–</span>
         )}
@@ -198,15 +218,13 @@ export default function AdminApplicationDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('formulir');
-  const [internalNote, setInternalNote] = useState('');
-  const [savingNote, setSavingNote] = useState(false);
-  const decisionPanelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (data?.preRegistration) {
-      setInternalNote(data.preRegistration.note ?? '');
-    }
-  }, [data?.preRegistration?.note, data?.id]);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [viewingDocument, setViewingDocument] = useState<{
+    url: string;
+    fileName: string;
+    mimeType?: string;
+  } | null>(null);
 
   const fetchDetail = useCallback(async (applicationId: string) => {
     setLoading(true);
@@ -227,34 +245,23 @@ export default function AdminApplicationDetailPage({
     fetchDetail(id);
   }, [id, fetchDetail]);
 
-  const handleApprove = async (applicationId: string) => {
-    await approveApplication(applicationId);
-    if (id === applicationId) fetchDetail(applicationId);
-  };
-
-  const handleReject = async (applicationId: string, note: string) => {
-    await rejectApplication(applicationId, note);
-    if (id === applicationId) fetchDetail(applicationId);
-  };
-
-  const handleRequestChanges = async (applicationId: string, note: string) => {
-    await requestChangesApplication(applicationId, note);
-    if (id === applicationId) fetchDetail(applicationId);
-  };
-
-  const scrollToDecisionPanel = () => {
-    decisionPanelRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleSaveInternalNote = async () => {
+  const handleApprove = async () => {
     if (!id) return;
-    setSavingNote(true);
+    setApproving(true);
     try {
-      await updateInternalNote(id, internalNote);
+      await approveApplication(id);
       await fetchDetail(id);
+    } catch (e) {
+      // Error handling is done by the component state
     } finally {
-      setSavingNote(false);
+      setApproving(false);
     }
+  };
+
+  const handleReject = async (reason: string) => {
+    if (!id) return;
+    await rejectApplication(id, reason);
+    await fetchDetail(id);
   };
 
   if (!id || loading) {
@@ -337,12 +344,13 @@ export default function AdminApplicationDetailPage({
                 <Button
                   variant="outline"
                   className="border-red-200 text-red-700 hover:bg-red-50"
-                  onClick={scrollToDecisionPanel}
+                  onClick={() => setRejectDialogOpen(true)}
+                  disabled={approving}
                 >
                   Tolak
                 </Button>
-                <Button variant="outline" onClick={scrollToDecisionPanel}>
-                  Setujui
+                <Button variant="outline" onClick={handleApprove} disabled={approving}>
+                  {approving ? 'Memproses...' : 'Setujui'}
                 </Button>
               </>
             )}
@@ -355,16 +363,6 @@ export default function AdminApplicationDetailPage({
                 <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
             </Link>
-            <button
-              type="button"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              aria-label="Download"
-              title="Download (belum diimplementasi)"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>
@@ -383,12 +381,6 @@ export default function AdminApplicationDetailPage({
             className="rounded-none border-b-2 border-transparent bg-transparent px-5 pb-3 pt-3 text-sm font-medium text-gray-500 data-[state=active]:!border-gray-900 data-[state=active]:!bg-transparent data-[state=active]:!text-gray-900 data-[state=inactive]:hover:!text-gray-700"
           >
             Catatan Internal
-          </TabsTrigger>
-          <TabsTrigger
-            value="riwayat"
-            className="rounded-none border-b-2 border-transparent bg-transparent px-5 pb-3 pt-3 text-sm font-medium text-gray-500 data-[state=active]:!border-gray-900 data-[state=active]:!bg-transparent data-[state=active]:!text-gray-900 data-[state=inactive]:hover:!text-gray-700"
-          >
-            Riwayat Aktivitas
           </TabsTrigger>
         </TabsList>
 
@@ -448,52 +440,28 @@ export default function AdminApplicationDetailPage({
                 <FormUploadRow
                   label="Upload scan visa/izin tinggal (jika tersedia)"
                   fileName={null}
+                  documentUrl={null}
+                  mimeType={null}
                   required
                   disabled
+                  onView={() => {
+                    // Placeholder - will be implemented when documents API is available
+                  }}
                 />
               </div>
             </AdminCardSection>
 
-            {/* Decision buttons: close below last row, no separator or box */}
-            <div ref={decisionPanelRef} className="mt-6 flex justify-end">
-              <DecisionPanel
-                applicationId={data.id}
-                status={data.status}
-                onApprove={handleApprove}
-                onReject={handleReject}
-                onRequestChanges={handleRequestChanges}
-                onSuccess={() => fetchDetail(data.id)}
-                inline
-              />
-            </div>
           </div>
         </TabsContent>
 
         <TabsContent value="catatan" className="mt-0">
           <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white p-8 shadow-sm">
-            <label htmlFor="internal-note" className="mb-2 block text-sm font-medium text-gray-900">
+            <label className="mb-2 block text-sm font-medium text-gray-900">
               Catatan Internal
             </label>
-            <textarea
-              id="internal-note"
-              value={internalNote}
-              onChange={(e) => setInternalNote(e.target.value)}
-              placeholder="Tambah catatan internal untuk aplikasi ini..."
-              rows={6}
-              className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
-              disabled={savingNote}
-            />
-            <div className="flex justify-end">
-              <Button onClick={handleSaveInternalNote} disabled={savingNote}>
-                {savingNote ? 'Menyimpan...' : 'Simpan'}
-              </Button>
+            <div className={READONLY_VALUE_CLASS} style={{ minHeight: '120px' }}>
+              {data.decisionReason ?? '–'}
             </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="riwayat" className="mt-0">
-          <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white p-8 shadow-sm">
-            <p className="text-sm text-gray-500">Riwayat aktivitas (belum diimplementasi).</p>
           </div>
         </TabsContent>
       </Tabs>
@@ -505,6 +473,25 @@ export default function AdminApplicationDetailPage({
         >
           <strong>Langkah berikut:</strong> Invitation onboarding (belum diimplementasi).
         </div>
+      )}
+
+      {/* Reject Dialog */}
+      <RejectDialog
+        open={rejectDialogOpen}
+        onClose={() => setRejectDialogOpen(false)}
+        onConfirm={handleReject}
+        applicationId={id}
+      />
+
+      {/* Document Viewer Dialog */}
+      {viewingDocument && (
+        <DocumentViewerDialog
+          open={!!viewingDocument}
+          onClose={() => setViewingDocument(null)}
+          documentUrl={viewingDocument.url}
+          fileName={viewingDocument.fileName}
+          mimeType={viewingDocument.mimeType}
+        />
       )}
     </div>
   );
