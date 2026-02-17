@@ -1,5 +1,10 @@
 export { StudentDataStep } from './StudentDataStep';
 export { ParentGuardianStep } from './ParentGuardianStep';
+export { ParentGuardianStep2 } from './ParentGuardianStep2';
 export { AddressStep } from './AddressStep';
+export { AddressStep3 } from './AddressStep3';
 export { SpecialNeedsStep } from './SpecialNeedsStep';
+export { SpecialNeedsStep4 } from './SpecialNeedsStep4';
 export { DocumentsStep } from './DocumentsStep';
+export { DocumentsStep5 } from './DocumentsStep5';
+export type { DocumentFile, DocumentsStep5Props } from './DocumentsStep5';

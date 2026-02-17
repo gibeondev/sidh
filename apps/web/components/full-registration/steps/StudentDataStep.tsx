@@ -20,11 +20,6 @@ const SPECIAL_NEEDS_OPTIONS = [
   { value: 'NO', label: 'Tidak' },
 ];
 
-const DOMICILE_REGION_OPTIONS = [
-  { value: 'Eropa', label: 'Eropa' },
-  { value: 'Afrika', label: 'Afrika' },
-];
-
 export interface StudentDataStepProps {
   data: Pick<
     FullRegistrationPayload,
@@ -75,7 +70,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.studentName}
             onChange={(e) => onChange('studentName', e.target.value)}
             placeholder="nama lengkap"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -101,7 +96,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.gradeApplied}
             onChange={(e) => onChange('gradeApplied', e.target.value)}
             placeholder="kelas yang didaftarkan"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -128,7 +123,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.studentBirthDate}
             onChange={(e) => onChange('studentBirthDate', e.target.value)}
             placeholder="TTL (tanggal lahir)"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400 !text-gray-400"
           />
         </FormRow>
 
@@ -138,7 +133,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.birthPlace}
             onChange={(e) => onChange('birthPlace', e.target.value)}
             placeholder="TTL (tempat lahir)"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -148,7 +143,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.nik}
             onChange={(e) => onChange('nik', e.target.value)}
             placeholder="NIK"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -158,7 +153,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.religion}
             onChange={(e) => onChange('religion', e.target.value)}
             placeholder="Agama"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -170,7 +165,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.heightCm}
             onChange={(e) => onChange('heightCm', e.target.value)}
             placeholder="Tinggi badan (cm)"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -182,7 +177,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.weightKg}
             onChange={(e) => onChange('weightKg', e.target.value)}
             placeholder="Berat badan (kg)"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -192,7 +187,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.nisn}
             onChange={(e) => onChange('nisn', e.target.value)}
             placeholder="NISN (Nomor Induk Siswa Nasional)"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -202,7 +197,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.lastSchoolIndonesia}
             onChange={(e) => onChange('lastSchoolIndonesia', e.target.value)}
             placeholder="Tahun terakhir bersekolah di Indonesia"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -212,7 +207,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.currentSchoolName}
             onChange={(e) => onChange('currentSchoolName', e.target.value)}
             placeholder="Nama sekolah"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -222,7 +217,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.currentSchoolCountry}
             onChange={(e) => onChange('currentSchoolCountry', e.target.value)}
             placeholder="Negara"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -232,7 +227,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.childOrder}
             onChange={(e) => onChange('childOrder', e.target.value)}
             placeholder="Anak ke berapa"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -242,7 +237,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.siblingCount}
             onChange={(e) => onChange('siblingCount', e.target.value)}
             placeholder="Jumlah saudara kandung"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -252,7 +247,7 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.lastDiplomaSerialNumber}
             onChange={(e) => onChange('lastDiplomaSerialNumber', e.target.value)}
             placeholder="Nomor seri ijazah terakhir"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -278,25 +273,19 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             value={data.addressIndonesia}
             onChange={(e) => onChange('addressIndonesia', e.target.value)}
             placeholder="Alamat tinggal Indonesia"
-            className="w-full"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
-        <div className="grid grid-cols-[240px_1fr] gap-4 items-start">
-          <label className="pt-2 text-sm font-medium text-gray-900">
-            Alamat tinggal domisili penugasan orang tua
-            <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
-          </label>
-          <div className="flex-1 min-w-0">
-            <RadioGroup
-              name="domicileRegion"
-              value={data.domicileRegion}
-              onChange={(v) => onChange('domicileRegion', v)}
-              options={DOMICILE_REGION_OPTIONS}
-              aria-label="Domisili penugasan"
-            />
-          </div>
-        </div>
+        <FormRow label="Alamat tinggal domisili penugasan orang tua" required>
+          <Input
+            id="domicileRegion"
+            value={data.domicileRegion}
+            onChange={(e) => onChange('domicileRegion', e.target.value)}
+            placeholder="Alamat tinggal domisili penugasan orang tua"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
+          />
+        </FormRow>
 
         <div className="grid grid-cols-[240px_1fr] gap-4 items-start">
           <label className="pt-2 text-sm font-medium text-gray-900">
@@ -309,14 +298,14 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
               value={data.phoneCountryCode}
               onChange={(e) => onChange('phoneCountryCode', e.target.value)}
               placeholder="+62"
-              className="w-20"
+              className="w-20 !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
             <Input
               id="phoneNumber"
               value={data.phoneNumber}
               onChange={(e) => onChange('phoneNumber', e.target.value)}
               placeholder="Nomor telepon"
-              className="flex-1"
+              className="flex-1 !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
           </div>
         </div>

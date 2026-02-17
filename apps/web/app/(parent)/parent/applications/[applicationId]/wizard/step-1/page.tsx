@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { FullRegistrationPayload } from '@/lib/api/fullRegistration';
 import { validateStep1 } from '@/lib/full-registration-validation';
+import { updateApplication, ApiError } from '@/lib/api/fullRegistration';
 import { FullRegistrationHeader, WizardStepActions } from '@/components/full-registration';
 import { StudentDataStep } from '@/components/full-registration/steps/StudentDataStep';
 
@@ -23,14 +24,50 @@ export default function WizardStep1Page() {
     setError(null);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const errors = validateStep1(form);
     if (errors.length > 0) {
       setError(errors.join(' '));
       return;
     }
     setError(null);
-    if (applicationId) router.push(`/parent/applications/${applicationId}/wizard/step-2`);
+    
+    // Save Step 1 data as draft
+    try {
+      if (applicationId) {
+        await updateApplication(applicationId, {
+          studentName: form.studentName,
+          programChoice: form.programChoice,
+          gradeApplied: form.gradeApplied,
+          studentGender: form.studentGender,
+          studentBirthDate: form.studentBirthDate,
+          birthPlace: form.birthPlace,
+          nik: form.nik,
+          religion: form.religion,
+          heightCm: form.heightCm,
+          weightKg: form.weightKg,
+          nisn: form.nisn,
+          lastSchoolIndonesia: form.lastSchoolIndonesia,
+          currentSchoolName: form.currentSchoolName,
+          currentSchoolCountry: form.currentSchoolCountry,
+          childOrder: form.childOrder,
+          siblingCount: form.siblingCount,
+          lastDiplomaSerialNumber: form.lastDiplomaSerialNumber,
+          hasSpecialNeeds: form.hasSpecialNeeds,
+          addressIndonesia: form.addressIndonesia,
+          domicileRegion: form.domicileRegion,
+          phoneCountryCode: form.phoneCountryCode,
+          phoneNumber: form.phoneNumber,
+        });
+        router.push(`/parent/applications/${applicationId}/wizard/step-2`);
+      }
+    } catch (err) {
+      const message =
+        err instanceof ApiError && err.message
+          ? err.message
+          : 'Gagal menyimpan data. Silakan coba lagi.';
+      setError(message);
+    }
   };
 
   return (

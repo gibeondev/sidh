@@ -34,6 +34,12 @@ enum StudentGender {
   FEMALE
 }
 
+enum ContactRelationship {
+  Father
+  Mother
+  Guardian
+}
+
 model User {
   id           Int           @id @default(autoincrement())
   email        String        @unique
@@ -76,6 +82,8 @@ model Application {
   registrationPeriod     RegistrationPeriod    @relation(fields: [registrationPeriodId], references: [id])
   parentUser             User?                @relation(fields: [parentUserId], references: [id])
   preRegistration        ApplicationPreRegistration?
+  registrationSubmission RegistrationSubmission?
+  contacts               ApplicationContact[]
 
   @@map("applications")
 }
@@ -104,6 +112,57 @@ model ApplicationPreRegistration {
   application            Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@map("application_pre_registrations")
+}
+
+model RegistrationSubmission {
+  applicationId          String       @id @map("application_id") @db.Uuid
+  studentFullName        String       @map("student_full_name")
+  programChoice          String       @map("program_choice")
+  gradeApplied           String       @map("grade_applied")
+  studentGender          StudentGender @map("student_gender")
+  studentBirthDate       DateTime     @map("student_birth_date") @db.Date
+  birthPlace             String       @map("birth_place")
+  nik                    String
+  religion               String
+  heightCm               Int          @map("height_cm")
+  weightKg               Int          @map("weight_kg")
+  nisn                   String
+  lastSchoolIndonesia    String       @map("last_school_indonesia")
+  currentSchoolName      String       @map("current_school_name")
+  currentSchoolCountry   String       @map("current_school_country")
+  childOrder             Int          @map("child_order")
+  siblingsCount           Int          @map("siblings_count")
+  lastDiplomaSerialNumber String?     @map("last_diploma_serial_number")
+  hasSpecialNeeds        String       @map("has_special_needs")
+  addressIndonesia       String       @map("address_indonesia")
+  domicileRegion         String       @map("domicile_region")
+  phoneCountryCode       String       @map("phone_country_code")
+  phoneNumber            String       @map("phone_number")
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+
+  application            Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("registration_submissions")
+}
+
+model ApplicationContact {
+  id              String              @id @default(uuid()) @db.Uuid
+  applicationId   String              @map("application_id") @db.Uuid
+  relationship    ContactRelationship
+  fullName        String              @map("full_name")
+  birthPlace      String              @map("birth_place")
+  birthDate       DateTime            @map("birth_date") @db.Date
+  nik             String
+  educationLevel  String              @map("education_level")
+  occupation      String
+  incomeRange     String              @map("income_range")
+  phone           String
+  email           String
+
+  application     Application         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("application_contacts")
 }
 
 model Bootstrap {

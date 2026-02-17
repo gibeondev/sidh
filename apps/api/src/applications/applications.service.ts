@@ -10,6 +10,8 @@ import { PreRegisterDto } from './dto/pre-register.dto';
 import { DecisionNoteDto } from './dto/decision.dto';
 import { InternalNoteDto } from './dto/internal-note.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
+import { UpdateFullRegistrationDto, ContactDto, ContactRelationshipDto } from './dto/update-full-registration.dto';
+import { ContactRelationship } from '@prisma/client';
 
 @Injectable()
 export class ApplicationsService {
@@ -266,6 +268,249 @@ export class ApplicationsService {
       },
       include: { preRegistration: true, registrationPeriod: true },
     });
+  }
+
+  async listByParent(parentUserId: number, callerRole?: string) {
+    const where =
+      callerRole === 'ADMIN'
+        ? {}
+        : { parentUserId };
+    return this.prisma.application.findMany({
+      where,
+      include: {
+        registrationPeriod: true,
+        preRegistration: true,
+        registrationSubmission: true,
+        contacts: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getOneByParent(
+    applicationId: string,
+    parentUserId: number,
+    parentEmail?: string,
+    callerRole?: string,
+  ) {
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        registrationPeriod: true,
+        preRegistration: true,
+        registrationSubmission: true,
+        contacts: true,
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (callerRole !== 'ADMIN') {
+      const belongsToParent =
+        application.parentUserId === parentUserId ||
+        (application.parentUserId == null &&
+          parentEmail != null &&
+          application.applicantEmail.toLowerCase() === parentEmail.toLowerCase());
+
+      if (!belongsToParent) {
+        throw new ForbiddenException('Application does not belong to this user');
+      }
+    }
+
+    return application;
+  }
+
+  /**
+   * Parent: Update full registration data (Step 1 & 2) as draft
+   */
+  async parentUpdateFullRegistration(
+    applicationId: string,
+    parentUserId: number,
+    parentEmail: string | undefined,
+    callerRole: string | undefined,
+    dto: UpdateFullRegistrationDto,
+  ) {
+    // Verify application exists and belongs to parent (or can be linked by email); ADMIN can update any
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: { registrationPeriod: true },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (callerRole !== 'ADMIN') {
+      const belongsToParent =
+        application.parentUserId === parentUserId ||
+        (application.parentUserId == null &&
+          parentEmail != null &&
+          application.applicantEmail.toLowerCase() === parentEmail.toLowerCase());
+
+      if (!belongsToParent) {
+        throw new ForbiddenException('Application does not belong to this user');
+      }
+    }
+
+    // Check if registration period is open
+    if (application.registrationPeriod.status !== RegistrationPeriodStatus.OPEN) {
+      throw new ForbiddenException('Registration period is closed');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Link application to parent if not yet linked (e.g. after pre-registration, same email); skip when caller is ADMIN
+      if (
+        callerRole !== 'ADMIN' &&
+        application.parentUserId == null &&
+        parentEmail != null &&
+        application.applicantEmail.toLowerCase() === parentEmail.toLowerCase()
+      ) {
+        await tx.application.update({
+          where: { id: applicationId },
+          data: { parentUserId },
+        });
+      }
+
+      // Update or create registration submission (Step 1 data)
+      if (
+        dto.studentName != null ||
+        dto.programChoice != null ||
+        dto.gradeApplied != null ||
+        dto.studentGender != null ||
+        dto.studentBirthDate != null ||
+        dto.birthPlace != null ||
+        dto.nik != null ||
+        dto.religion != null ||
+        dto.heightCm != null ||
+        dto.weightKg != null ||
+        dto.nisn != null ||
+        dto.lastSchoolIndonesia != null ||
+        dto.currentSchoolName != null ||
+        dto.currentSchoolCountry != null ||
+        dto.childOrder != null ||
+        dto.siblingCount != null ||
+        dto.lastDiplomaSerialNumber != null ||
+        dto.hasSpecialNeeds != null ||
+        dto.addressIndonesia != null ||
+        dto.domicileRegion != null ||
+        dto.phoneCountryCode != null ||
+        dto.phoneNumber != null
+      ) {
+        const num = (v: string | undefined, fallback: number) => {
+          if (v == null || v === '') return fallback;
+          const n = parseInt(String(v).trim(), 10);
+          return Number.isNaN(n) ? fallback : n;
+        };
+        const str = (v: string | undefined, fallback: string) =>
+          v != null && String(v).trim() !== '' ? String(v).trim() : fallback;
+        const date = (v: string | undefined) =>
+          v ? new Date(v) : new Date();
+
+        const submissionData = {
+          studentFullName: str(dto.studentName, ''),
+          programChoice: str(dto.programChoice, ''),
+          gradeApplied: str(dto.gradeApplied, ''),
+          studentGender: (dto.studentGender ?? StudentGender.MALE) as StudentGender,
+          studentBirthDate: date(dto.studentBirthDate),
+          birthPlace: str(dto.birthPlace, ''),
+          nik: str(dto.nik, ''),
+          religion: str(dto.religion, ''),
+          heightCm: num(dto.heightCm, 0),
+          weightKg: num(dto.weightKg, 0),
+          nisn: str(dto.nisn, ''),
+          lastSchoolIndonesia: str(dto.lastSchoolIndonesia, ''),
+          currentSchoolName: str(dto.currentSchoolName, ''),
+          currentSchoolCountry: str(dto.currentSchoolCountry, ''),
+          childOrder: num(dto.childOrder, 0),
+          siblingsCount: num(dto.siblingCount, 0),
+          lastDiplomaSerialNumber: dto.lastDiplomaSerialNumber?.trim() || null,
+          hasSpecialNeeds: str(dto.hasSpecialNeeds, 'NO'),
+          addressIndonesia: str(dto.addressIndonesia, ''),
+          domicileRegion: str(dto.domicileRegion, ''),
+          phoneCountryCode: str(dto.phoneCountryCode, '+62'),
+          phoneNumber: str(dto.phoneNumber, ''),
+        };
+
+        await tx.registrationSubmission.upsert({
+          where: { applicationId },
+          update: submissionData,
+          create: {
+            applicationId,
+            ...submissionData,
+          },
+        });
+      }
+
+      // Update contacts (Step 2 data)
+      if (dto.contacts && dto.contacts.length > 0) {
+        // Delete existing contacts for this application
+        await tx.applicationContact.deleteMany({
+          where: { applicationId },
+        });
+
+        // Create new contacts
+        const contactData = dto.contacts.map((contact) => ({
+          applicationId,
+          relationship: this.mapContactRelationship(contact.relationship),
+          fullName: contact.fullName,
+          birthPlace: contact.birthPlace,
+          birthDate: new Date(contact.birthDate),
+          nik: contact.nik,
+          educationLevel: contact.educationLevel,
+          occupation: contact.occupation,
+          incomeRange: contact.incomeRange,
+          phone: contact.phone,
+          email: contact.email,
+        }));
+
+        await tx.applicationContact.createMany({
+          data: contactData,
+        });
+      }
+
+      // Step 3 - Address & Domicile data
+      // TODO: Persist Step 3 address fields when schema is updated
+      // Fields accepted: parentServiceCountry, domicilePeriodStart, domicilePeriodEnd, parentVisaType
+      // These fields are currently accepted by the API but not persisted to database.
+      // When a table/model is added for Step 3 data, implement persistence here.
+
+      // Step 4 - Special Needs & Additional Information data
+      // TODO: Persist Step 4 fields when schema is updated
+      // Fields accepted: description, additionalInfo
+      // These fields are currently accepted by the API but not persisted to database.
+      // When a table/model is added for Step 4 data, implement persistence here.
+
+      // Step 5 - Documents
+      // Note: Document uploads are handled via separate endpoint:
+      // POST /parent/applications/:id/documents (see Task 06 - Documents Upload)
+      // Documents are not saved through this update endpoint.
+
+      return tx.application.findUnique({
+        where: { id: applicationId },
+        include: {
+          registrationSubmission: true,
+          contacts: true,
+          registrationPeriod: true,
+        },
+      });
+    });
+  }
+
+  private mapContactRelationship(
+    relationship: ContactRelationshipDto,
+  ): ContactRelationship {
+    switch (relationship) {
+      case ContactRelationshipDto.Father:
+        return ContactRelationship.Father;
+      case ContactRelationshipDto.Mother:
+        return ContactRelationship.Mother;
+      case ContactRelationshipDto.Guardian:
+        return ContactRelationship.Guardian;
+      default:
+        throw new BadRequestException(`Invalid relationship: ${relationship}`);
+    }
   }
 
   private async generateApplicationNo(periodId: string): Promise<string> {

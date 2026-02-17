@@ -32,18 +32,66 @@ export interface FullRegistrationPayload {
   domicileRegion: string;
   phoneCountryCode: string;
   phoneNumber: string;
-  // Step 2 — Data Orang Tua/Wali (existing)
-  applicantName: string;
-  applicantRelationship: string;
-  applicantEmail: string;
-  assignmentCity: string;
-  assignmentCountry: string;
+  // Step 2 — Data Orang Tua/Wali
+  // Legacy fields (kept for backward compatibility, not used in Step 2)
+  applicantName?: string;
+  applicantRelationship?: string;
+  applicantEmail?: string;
+  assignmentCity?: string;
+  assignmentCountry?: string;
+  // Data Ayah
+  fatherFullName: string;
+  fatherBirthPlace: string;
+  fatherBirthDate: string;
+  fatherNik: string;
+  fatherEducationLevel: string;
+  fatherOccupation: string;
+  fatherIncomeRange: string;
+  fatherPhone: string;
+  fatherEmail: string;
+  // Data Ibu
+  motherFullName: string;
+  motherBirthPlace: string;
+  motherBirthDate: string;
+  motherNik: string;
+  motherEducationLevel: string;
+  motherOccupation: string;
+  motherIncomeRange: string;
+  motherPhone: string;
+  motherEmail: string;
+  // Data Wali
+  guardianFullName: string;
+  guardianBirthPlace: string;
+  guardianBirthDate: string;
+  guardianNik: string;
+  guardianEducationLevel: string;
+  guardianOccupation: string;
+  guardianIncomeRange: string;
+  guardianPhone: string;
+  guardianEmail: string;
   // Step 3 — Alamat & Domisili
-  addressLine: string;
-  postalCode: string;
+  parentServiceCountry: string; // Negara tempat dinas orang tua/ studi orang tua
+  domicilePeriodStart: string; // Rencana periode domisili - Start
+  domicilePeriodEnd: string; // Rencana periode domisili - End
+  parentVisaType: 'Diplomat' | 'Student' | 'Diaspora'; // Informasi visa/ijin tinggal orang tua yang digunakan
   // Step 4 — Kebutuhan Khusus & Informasi Tambahan
-  educationLevel: string;
-  lastEducationLocation: string;
+  description: string; // Deskripsi
+  additionalInfo: string; // Informasi tambahan yang dibutuhkan oleh sekolah
+  // Step 5 — Dokumen (file references - will be handled separately via document upload API)
+  // Document fields are stored as file references/IDs, not in this payload
+  // Contacts for API submission
+  contacts?: Array<{
+    relationship: 'Father' | 'Mother' | 'Guardian';
+    fullName: string;
+    birthPlace: string;
+    birthDate: string;
+    nik: string;
+    educationLevel: string;
+    occupation: string;
+    incomeRange: string;
+    phone: string;
+    email: string;
+  }>;
 }
 
 const credentials = 'include' as RequestCredentials;

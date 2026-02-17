@@ -5,8 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { FullRegistrationPayload } from '@/lib/api/fullRegistration';
 import { validateStep4 } from '@/lib/full-registration-validation';
+import { updateApplication, ApiError } from '@/lib/api/fullRegistration';
 import { FullRegistrationHeader, WizardStepActions } from '@/components/full-registration';
-import { SpecialNeedsStep } from '@/components/full-registration/steps';
+import { SpecialNeedsStep4 } from '@/components/full-registration/steps/SpecialNeedsStep4';
 
 const STEP = 4 as const;
 
@@ -23,14 +24,30 @@ export default function WizardStep4Page() {
     setError(null);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const errors = validateStep4(form);
     if (errors.length > 0) {
       setError(errors.join(' '));
       return;
     }
     setError(null);
-    if (applicationId) router.push(`/parent/applications/${applicationId}/wizard/step-5`);
+    
+    // Save Step 4 data as draft
+    try {
+      if (applicationId) {
+        await updateApplication(applicationId, {
+          description: form.description,
+          additionalInfo: form.additionalInfo,
+        });
+        router.push(`/parent/applications/${applicationId}/wizard/step-5`);
+      }
+    } catch (err) {
+      const message =
+        err instanceof ApiError && err.message
+          ? err.message
+          : 'Gagal menyimpan data. Silakan coba lagi.';
+      setError(message);
+    }
   };
 
   return (
@@ -48,10 +65,10 @@ export default function WizardStep4Page() {
             </div>
           )}
 
-          <SpecialNeedsStep
+          <SpecialNeedsStep4
             data={{
-              educationLevel: form.educationLevel ?? '',
-              lastEducationLocation: form.lastEducationLocation ?? '',
+              description: form.description ?? '',
+              additionalInfo: form.additionalInfo ?? '',
             }}
             onChange={update}
           />

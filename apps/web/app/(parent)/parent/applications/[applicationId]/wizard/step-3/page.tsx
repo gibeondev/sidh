@@ -5,8 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { FullRegistrationPayload } from '@/lib/api/fullRegistration';
 import { validateStep3 } from '@/lib/full-registration-validation';
+import { updateApplication, ApiError } from '@/lib/api/fullRegistration';
 import { FullRegistrationHeader, WizardStepActions } from '@/components/full-registration';
-import { AddressStep } from '@/components/full-registration/steps';
+import { AddressStep3 } from '@/components/full-registration/steps/AddressStep3';
 
 const STEP = 3 as const;
 
@@ -23,14 +24,32 @@ export default function WizardStep3Page() {
     setError(null);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const errors = validateStep3(form);
     if (errors.length > 0) {
       setError(errors.join(' '));
       return;
     }
     setError(null);
-    if (applicationId) router.push(`/parent/applications/${applicationId}/wizard/step-4`);
+    
+    // Save Step 3 data as draft
+    try {
+      if (applicationId) {
+        await updateApplication(applicationId, {
+          parentServiceCountry: form.parentServiceCountry,
+          domicilePeriodStart: form.domicilePeriodStart,
+          domicilePeriodEnd: form.domicilePeriodEnd,
+          parentVisaType: form.parentVisaType,
+        });
+        router.push(`/parent/applications/${applicationId}/wizard/step-4`);
+      }
+    } catch (err) {
+      const message =
+        err instanceof ApiError && err.message
+          ? err.message
+          : 'Gagal menyimpan data. Silakan coba lagi.';
+      setError(message);
+    }
   };
 
   return (
@@ -48,10 +67,12 @@ export default function WizardStep3Page() {
             </div>
           )}
 
-          <AddressStep
+          <AddressStep3
             data={{
-              addressLine: form.addressLine ?? '',
-              postalCode: form.postalCode ?? '',
+              parentServiceCountry: form.parentServiceCountry ?? '',
+              domicilePeriodStart: form.domicilePeriodStart ?? '',
+              domicilePeriodEnd: form.domicilePeriodEnd ?? '',
+              parentVisaType: (form.parentVisaType as 'Diplomat' | 'Student' | 'Diaspora') ?? 'Diplomat',
             }}
             onChange={update}
           />

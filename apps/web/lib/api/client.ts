@@ -67,14 +67,17 @@ export async function request<T>(
   const data = await response.json().catch(() => ({})) as ApiErrorBody & T;
 
   if (!response.ok) {
-    const msg =
+    const serverMsg =
       typeof data.message === 'string'
         ? data.message
         : Array.isArray(data.message)
           ? data.message.join(' ')
-          : response.status === 403
-            ? 'Registrasi saat ini ditutup.'
-            : 'Pre-registrasi gagal. Periksa data Anda dan coba lagi.';
+          : '';
+    const msg =
+      serverMsg ||
+      (response.status === 403
+        ? 'Akses ditolak. Pastikan Anda masuk dengan akun yang benar.'
+        : 'Permintaan gagal. Silakan coba lagi.');
     throw new ApiError(msg, response.status, data);
   }
 
