@@ -8,4 +8,8 @@ export class UpdateStatusDto {
   @IsOptional()
   @IsString()
   decisionReason?: string;
+
+  @IsOptional()
+  @IsString()
+  statusType?: 'preRegistration' | 'fullRegistration'; // Which status to update
 }

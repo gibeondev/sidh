@@ -10,6 +10,10 @@ export interface FileUploadProps {
   maxSizeMB?: number;
   className?: string;
   'aria-label'?: string;
+  uploadedFileName?: string; // Name of file already uploaded to S3
+  disabled?: boolean;
+  /** When set and disabled, show "Lihat" button to view the uploaded document (e.g. open signed URL). */
+  onViewClick?: () => void | Promise<void>;
 }
 
 /**
@@ -25,17 +29,23 @@ export function FileUpload({
   maxSizeMB = 1,
   className = '',
   'aria-label': ariaLabel,
+  uploadedFileName,
+  disabled = false,
+  onViewClick,
 }: FileUploadProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = React.useState<string>('');
+  const [viewing, setViewing] = React.useState(false);
 
   React.useEffect(() => {
     if (value) {
       setFileName(value.name);
+    } else if (uploadedFileName) {
+      setFileName(uploadedFileName);
     } else {
       setFileName('');
     }
-  }, [value]);
+  }, [value, uploadedFileName]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -75,12 +85,34 @@ export function FileUpload({
         onChange={handleFileChange}
         className="hidden"
         aria-label={ariaLabel}
+        disabled={disabled}
       />
 
       {fileName ? (
-        // File uploaded state: show filename in pill with delete icon
+        // File uploaded state: show filename in pill with delete icon (or no delete when disabled), and "Lihat" when onViewClick
         <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full">
           <span className="text-sm text-blue-700 font-medium">{fileName}</span>
+          {uploadedFileName && !value && (
+            <span className="text-xs text-blue-600 italic">(sudah diunggah)</span>
+          )}
+          {disabled && onViewClick && (
+            <button
+              type="button"
+              onClick={async () => {
+                setViewing(true);
+                try {
+                  await onViewClick();
+                } finally {
+                  setViewing(false);
+                }
+              }}
+              disabled={viewing}
+              className="text-sm font-medium text-teal-700 hover:text-teal-900 focus:outline-none focus:underline disabled:opacity-50"
+            >
+              {viewing ? 'Membuka...' : 'Lihat'}
+            </button>
+          )}
+          {!disabled && (
           <button
             type="button"
             onClick={handleRemove}
@@ -102,10 +134,12 @@ export function FileUpload({
               />
             </svg>
           </button>
+          )}
         </div>
       ) : (
-        // No file selected state: show "Pilih file" button with upload icon
+        // No file selected state: show "Pilih file" button with upload icon (or placeholder when disabled)
         <>
+          {!disabled && (
           <button
             type="button"
             onClick={handleButtonClick}
@@ -128,7 +162,8 @@ export function FileUpload({
             </svg>
             Pilih file
           </button>
-          <span className="text-sm text-gray-400">Tidak ada file yang dipilih</span>
+          )}
+          <span className="text-sm text-gray-400">{fileName ? '' : (disabled ? '–' : 'Tidak ada file yang dipilih')}</span>
         </>
       )}
     </div>

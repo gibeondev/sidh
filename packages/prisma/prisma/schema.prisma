@@ -40,6 +40,32 @@ enum ContactRelationship {
   Guardian
 }
 
+enum DocumentType {
+  REPORT_CARD
+  LAST_DIPLOMA
+  NISN_CARD
+  TRANSFER_LETTER
+  BIRTH_CERTIFICATE
+  FAMILY_CARD
+  STUDENT_RESIDENCE_PERMIT
+  STUDENT_PASSPORT
+  STUDENT_PHOTO
+  PARENT_RESIDENCE_PERMIT
+  PARENT_PASSPORT
+  SCHOOL_CERTIFICATE
+  ATDIKBUD_CERTIFICATE
+  EQUIVALENCY_LETTER
+  STUDENT_PERMIT_LETTER
+  PARENT_STATEMENT
+}
+
+enum DocumentStatus {
+  OPEN
+  POSTPONED
+  APPROVED
+  REJECTED
+}
+
 model User {
   id           Int           @id @default(autoincrement())
   email        String        @unique
@@ -48,7 +74,10 @@ model User {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  applications Application[]
+  applications     Application[]
+  uploadedDocuments Document[]     @relation("DocumentUploader")
+  reviewedDocuments Document[]     @relation("DocumentReviewer")
+  auditLogs        DocumentAuditLog[] @relation("DocumentAuditPerformer")
 
   @@map("users")
 }
@@ -84,8 +113,43 @@ model Application {
   preRegistration        ApplicationPreRegistration?
   registrationSubmission RegistrationSubmission?
   contacts               ApplicationContact[]
+  documents              Document[]
+  student                Student?
 
   @@map("applications")
+}
+
+model Student {
+  id                      String       @id @default(uuid()) @db.Uuid
+  applicationId           String       @unique @map("application_id") @db.Uuid
+  studentFullName         String       @map("student_full_name")
+  programChoice           String       @map("program_choice")
+  gradeApplied            String       @map("grade_applied")
+  studentGender           StudentGender @map("student_gender")
+  studentBirthDate        DateTime     @map("student_birth_date") @db.Date
+  birthPlace              String       @map("birth_place")
+  nik                     String
+  religion                String
+  heightCm                Int          @map("height_cm")
+  weightKg                Int          @map("weight_kg")
+  nisn                    String
+  lastSchoolIndonesia     String       @map("last_school_indonesia")
+  currentSchoolName       String       @map("current_school_name")
+  currentSchoolCountry    String       @map("current_school_country")
+  childOrder              Int          @map("child_order")
+  siblingsCount           Int          @map("siblings_count")
+  lastDiplomaSerialNumber String?      @map("last_diploma_serial_number")
+  hasSpecialNeeds         String       @map("has_special_needs")
+  addressIndonesia        String       @map("address_indonesia")
+  domicileRegion          String       @map("domicile_region")
+  phoneCountryCode        String       @map("phone_country_code")
+  phoneNumber             String       @map("phone_number")
+  createdAt               DateTime     @default(now()) @map("created_at")
+  updatedAt               DateTime     @updatedAt @map("updated_at")
+
+  application             Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("students")
 }
 
 model ApplicationPreRegistration {
@@ -108,6 +172,9 @@ model ApplicationPreRegistration {
   lastEducationLocation  String       @map("last_education_location")
   nisn                   String?      @map("nisn")
   note                   String?      @map("note")
+  status                 ApplicationStatus @default(DRAFT) @map("status")
+  decisionReason         String?      @map("decision_reason")
+  submittedAt            DateTime?    @map("submitted_at")
 
   application            Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
@@ -138,6 +205,12 @@ model RegistrationSubmission {
   domicileRegion         String       @map("domicile_region")
   phoneCountryCode       String       @map("phone_country_code")
   phoneNumber            String       @map("phone_number")
+  parentServiceCountry   String?      @map("parent_service_country")
+  domicilePeriodStart    DateTime?    @map("domicile_period_start") @db.Date
+  domicilePeriodEnd      DateTime?    @map("domicile_period_end") @db.Date
+  parentVisaType         String?      @map("parent_visa_type")
+  description            String?      @map("description")
+  additionalInfo         String?      @map("additional_info")
   createdAt              DateTime     @default(now()) @map("created_at")
   updatedAt              DateTime     @updatedAt @map("updated_at")
 
@@ -163,6 +236,46 @@ model ApplicationContact {
   application     Application         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@map("application_contacts")
+}
+
+model Document {
+  id              String         @id @default(uuid()) @db.Uuid
+  applicationId   String         @map("application_id") @db.Uuid
+  documentType    DocumentType   @map("document_type")
+  status          DocumentStatus @default(OPEN)
+  s3Key           String         @map("s3_key")
+  fileName        String         @map("file_name")
+  fileSize        Int            @map("file_size")
+  mimeType        String         @map("mime_type")
+  uploadedAt      DateTime       @default(now()) @map("uploaded_at")
+  uploadedBy      Int            @map("uploaded_by")
+  reviewedAt      DateTime?      @map("reviewed_at")
+  reviewedBy      Int?           @map("reviewed_by")
+  reviewNote      String?        @map("review_note")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  application     Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  uploader        User            @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+  reviewer        User?           @relation("DocumentReviewer", fields: [reviewedBy], references: [id])
+  auditLogs        DocumentAuditLog[]
+
+  @@unique([applicationId, documentType])
+  @@map("documents")
+}
+
+model DocumentAuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  documentId String   @map("document_id") @db.Uuid
+  action     String   // 'DOWNLOAD', 'APPROVE', 'REJECT', etc.
+  performedBy Int     @map("performed_by")
+  performedAt DateTime @default(now()) @map("performed_at")
+  metadata   Json?    // Additional context (IP, user agent, etc.)
+
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  performer  User     @relation("DocumentAuditPerformer", fields: [performedBy], references: [id])
+
+  @@map("document_audit_logs")
 }
 
 model Bootstrap {

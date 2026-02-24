@@ -6,14 +6,11 @@ import {
   getAdminApplicationById,
   approveApplication,
   rejectApplication,
-  updateApplicationStatus,
   ApiError,
   type ApplicationDetail,
-  type ApplicationStatus,
 } from '@/lib/api/admin-applications';
-import { AdminCardSection, AdminPageHeader, StatusBadge, RejectDialog, DocumentViewerDialog, StatusChangeDialog } from '@/components/admin';
+import { AdminCardSection, AdminPageHeader, RejectDialog, DocumentViewerDialog } from '@/components/admin';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 function formatDateShort(iso: string): string {
@@ -51,6 +48,19 @@ function formatGender(g: string | undefined): string {
 }
 
 const LABEL_COL_WIDTH = 280;
+
+/** Pre-registration status is read-only; only three labels (Indonesian). */
+const PRE_REG_STATUS_LABELS: Record<string, string> = {
+  DRAFT: 'Dikirim',
+  SUBMITTED: 'Dikirim',
+  UNDER_REVIEW: 'Dikirim',
+  CHANGES_REQUESTED: 'Dikirim',
+  APPROVED: 'Disetujui',
+  REJECTED: 'Ditolak',
+};
+function getPreRegStatusLabel(status: string | undefined): string {
+  return status ? (PRE_REG_STATUS_LABELS[status] ?? status) : 'Dikirim';
+}
 
 /** Read-only value cell: soft muted background, subtle border, no focus ring, cursor-default. */
 const READONLY_VALUE_CLASS =
@@ -223,10 +233,6 @@ export default function AdminApplicationDetailPage({
   const [activeTab, setActiveTab] = useState('formulir');
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [approving, setApproving] = useState(false);
-  const [changingStatus, setChangingStatus] = useState(false);
-  const [statusChangeDialogOpen, setStatusChangeDialogOpen] = useState(false);
-  const [pendingStatusChange, setPendingStatusChange] = useState<ApplicationStatus | null>(null);
-  const [statusChangeError, setStatusChangeError] = useState<string | null>(null);
   const [viewingDocument, setViewingDocument] = useState<{
     url: string;
     fileName: string;
@@ -256,7 +262,7 @@ export default function AdminApplicationDetailPage({
     if (!id) return;
     setApproving(true);
     try {
-      await approveApplication(id);
+      await approveApplication(id, 'preRegistration');
       await fetchDetail(id);
     } catch (e) {
       // Error handling is done by the component state
@@ -267,59 +273,8 @@ export default function AdminApplicationDetailPage({
 
   const handleReject = async (reason: string) => {
     if (!id) return;
-    await rejectApplication(id, reason);
+    await rejectApplication(id, reason, 'preRegistration');
     await fetchDetail(id);
-  };
-
-  const handleStatusChange = (newStatus: ApplicationStatus) => {
-    if (!id || !data) return;
-    
-    // Don't do anything if selecting the same status
-    if (newStatus === data.status) return;
-    
-    // If changing to REJECTED, open reject dialog to get reason
-    if (newStatus === 'REJECTED') {
-      setPendingStatusChange(newStatus);
-      setRejectDialogOpen(true);
-      return;
-    }
-
-    // For other statuses, open confirmation dialog
-    setPendingStatusChange(newStatus);
-    setStatusChangeDialogOpen(true);
-  };
-
-  const handleConfirmStatusChange = async () => {
-    if (!id || !pendingStatusChange || !data) return;
-    
-    setStatusChangeError(null);
-    setChangingStatus(true);
-    try {
-      await updateApplicationStatus(id, pendingStatusChange);
-      await fetchDetail(id);
-      setPendingStatusChange(null);
-    } catch (e) {
-      setStatusChangeError(e instanceof ApiError ? e.message : 'Gagal mengubah status.');
-      throw e; // Re-throw to prevent dialog from closing
-    } finally {
-      setChangingStatus(false);
-    }
-  };
-
-  const handleRejectWithStatus = async (reason: string) => {
-    if (!id || !pendingStatusChange) return;
-    setStatusChangeError(null);
-    setChangingStatus(true);
-    try {
-      await updateApplicationStatus(id, pendingStatusChange, reason);
-      await fetchDetail(id);
-      setPendingStatusChange(null);
-    } catch (e) {
-      setStatusChangeError(e instanceof ApiError ? e.message : 'Gagal mengubah status.');
-      throw e; // Re-throw to prevent dialog from closing
-    } finally {
-      setChangingStatus(false);
-    }
   };
 
   if (!id || loading) {
@@ -362,9 +317,10 @@ export default function AdminApplicationDetailPage({
     );
   }
 
-  const submittedAt = data.submittedAt ?? data.createdAt;
-  const isApproved = data.status === 'APPROVED';
-  const canDecide = data.status !== 'APPROVED' && data.status !== 'REJECTED';
+  const submittedAt = pr.submittedAt ?? data.submittedAt ?? data.createdAt;
+  const preRegStatus = pr.status ?? data.status;
+  const isApproved = preRegStatus === 'APPROVED';
+  const canDecide = preRegStatus !== 'APPROVED' && preRegStatus !== 'REJECTED';
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 bg-gray-100 px-4 py-8">
@@ -385,28 +341,12 @@ export default function AdminApplicationDetailPage({
             <p className="text-xs text-gray-500">Aplikasi ({formatDateTime(submittedAt)})</p>
             <p className="text-lg font-bold text-gray-900">#{data.applicationNo}</p>
           </div>
-          {/* Middle: Status dropdown */}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Status</span>
-              <Select
-                options={[
-                  { value: 'DRAFT', label: 'Draft' },
-                  { value: 'SUBMITTED', label: 'Baru' },
-                  { value: 'UNDER_REVIEW', label: 'Sedang Ditinjau' },
-                  { value: 'CHANGES_REQUESTED', label: 'Perubahan Diminta' },
-                  { value: 'APPROVED', label: 'Disetujui' },
-                  { value: 'REJECTED', label: 'Ditolak' },
-                ]}
-                value={data.status}
-                onChange={(e) => handleStatusChange(e.target.value as ApplicationStatus)}
-                disabled={changingStatus || statusChangeDialogOpen}
-                className="min-w-[150px]"
-              />
-            </div>
-            {statusChangeError && (
-              <p className="text-xs text-red-600 ml-20">{statusChangeError}</p>
-            )}
+          {/* Middle: Status read-only (pre-reg only Approve/Reject) */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">Status</span>
+            <span className="min-w-[120px] rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-900">
+              {getPreRegStatusLabel(preRegStatus)}
+            </span>
           </div>
           {/* Right: actions + icon buttons (aligned with Status row) */}
           <div className="flex items-center justify-end gap-2">
@@ -424,6 +364,14 @@ export default function AdminApplicationDetailPage({
                   {approving ? 'Memproses...' : 'Setujui'}
                 </Button>
               </>
+            )}
+            {preRegStatus === 'APPROVED' && (
+              <Link
+                href={`/admin/applications/${id}/test-credentials`}
+                className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-100"
+              >
+                Kredensial tes
+              </Link>
             )}
             <Link
               href="/admin/applications"
@@ -546,31 +494,11 @@ export default function AdminApplicationDetailPage({
         </div>
       )}
 
-      {/* Status Change Confirmation Dialog */}
-      {pendingStatusChange && data && pendingStatusChange !== 'REJECTED' && (
-        <StatusChangeDialog
-          open={statusChangeDialogOpen}
-          onClose={() => {
-            setStatusChangeDialogOpen(false);
-            setPendingStatusChange(null);
-            setStatusChangeError(null);
-          }}
-          onConfirm={handleConfirmStatusChange}
-          currentStatus={data.status}
-          newStatus={pendingStatusChange}
-          changing={changingStatus}
-        />
-      )}
-
       {/* Reject Dialog */}
       <RejectDialog
         open={rejectDialogOpen}
-        onClose={() => {
-          setRejectDialogOpen(false);
-          setPendingStatusChange(null);
-          setStatusChangeError(null);
-        }}
-        onConfirm={pendingStatusChange ? handleRejectWithStatus : handleReject}
+        onClose={() => setRejectDialogOpen(false)}
+        onConfirm={handleReject}
         applicationId={id}
       />
 

@@ -3,6 +3,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ApplicationsService } from './applications.service';
 import { PublicApplicationsController } from './public-applications.controller';
 import { AdminApplicationsController } from './admin-applications.controller';
+import { AdminStudentsController } from './admin-students.controller';
 import { ParentApplicationsController } from './parent-applications.controller';
 
 @Module({
@@ -11,6 +12,7 @@ import { ParentApplicationsController } from './parent-applications.controller';
   controllers: [
     PublicApplicationsController,
     AdminApplicationsController,
+    AdminStudentsController,
     ParentApplicationsController,
   ],
 })

@@ -33,6 +33,66 @@ export interface ApplicationPreRegistration {
   nisn: string | null;
   /** Catatan Internal (admin-only) */
   note: string | null;
+  /** Pre-registration status */
+  status?: ApplicationStatus;
+  decisionReason?: string | null;
+  submittedAt?: string | null;
+}
+
+export interface RegistrationSubmissionListItem {
+  studentFullName: string;
+  programChoice: string;
+  gradeApplied: string;
+  studentGender: string;
+  studentBirthDate: string;
+  birthPlace: string;
+  nik: string;
+  religion: string;
+  heightCm?: number;
+  weightKg?: number;
+  nisn?: string;
+  lastSchoolIndonesia?: string;
+  currentSchoolName?: string;
+  currentSchoolCountry?: string;
+  childOrder?: number;
+  siblingsCount?: number;
+  lastDiplomaSerialNumber?: string | null;
+  hasSpecialNeeds?: string;
+  /** Keterangan kebutuhan khusus (jika ada) */
+  description?: string | null;
+  /** Informasi tambahan yang dibutuhkan oleh sekolah */
+  additionalInfo?: string | null;
+  addressIndonesia?: string;
+  domicileRegion?: string;
+  phoneCountryCode?: string;
+  phoneNumber?: string;
+  [key: string]: unknown;
+}
+
+export interface ApplicationContactItem {
+  id: string;
+  relationship: string;
+  fullName: string;
+  birthPlace: string;
+  birthDate: string;
+  nik: string;
+  educationLevel: string;
+  occupation: string;
+  incomeRange: string;
+  phone: string;
+  email: string;
+}
+
+export interface ApplicationDocumentItem {
+  id: string;
+  documentType: string;
+  status: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+  reviewedAt?: string | null;
+  reviewNote?: string | null;
 }
 
 export interface ApplicationListItem {
@@ -43,11 +103,15 @@ export interface ApplicationListItem {
   submittedAt: string | null;
   createdAt: string;
   preRegistration: ApplicationPreRegistration | null;
+  registrationSubmission?: RegistrationSubmissionListItem | null;
 }
 
 export interface ApplicationDetail extends ApplicationListItem {
   decisionReason?: string | null;
   registrationPeriod?: { id: string; name: string };
+  registrationSubmission?: RegistrationSubmissionListItem | null;
+  contacts?: ApplicationContactItem[];
+  documents?: ApplicationDocumentItem[];
 }
 
 export interface AdminApplicationsListResponse {
@@ -80,6 +144,7 @@ export async function getAdminApplications(params: {
   country?: string;
   sortBy?: AdminSortField;
   sortOrder?: AdminSortOrder;
+  hasFullRegistration?: boolean;
 }): Promise<AdminApplicationsListResponse> {
   const searchParams = new URLSearchParams();
   if (params.status) searchParams.set('status', params.status);
@@ -90,6 +155,7 @@ export async function getAdminApplications(params: {
   if (params.country) searchParams.set('country', params.country);
   if (params.sortBy) searchParams.set('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+  if (params.hasFullRegistration === true) searchParams.set('hasFullRegistration', 'true');
   const q = searchParams.toString();
   return request<AdminApplicationsListResponse>(
     `/admin/applications${q ? `?${q}` : ''}`,
@@ -110,23 +176,43 @@ export async function getAdminApplicationById(id: string): Promise<ApplicationDe
   return request<ApplicationDetail>(`/admin/applications/${id}`, { credentials });
 }
 
-export async function approveApplication(id: string): Promise<ApplicationDetail> {
-  return request<ApplicationDetail>(`/admin/applications/${id}/approve`, {
+export async function approveApplication(
+  id: string,
+  statusType?: 'preRegistration' | 'fullRegistration'
+): Promise<ApplicationDetail> {
+  const searchParams = new URLSearchParams();
+  if (statusType) searchParams.set('statusType', statusType);
+  const q = searchParams.toString();
+  return request<ApplicationDetail>(`/admin/applications/${id}/approve${q ? `?${q}` : ''}`, {
     method: 'POST',
     credentials,
   });
 }
 
-export async function rejectApplication(id: string, note: string): Promise<ApplicationDetail> {
-  return request<ApplicationDetail>(`/admin/applications/${id}/reject`, {
+export async function rejectApplication(
+  id: string,
+  note: string,
+  statusType?: 'preRegistration' | 'fullRegistration'
+): Promise<ApplicationDetail> {
+  const searchParams = new URLSearchParams();
+  if (statusType) searchParams.set('statusType', statusType);
+  const q = searchParams.toString();
+  return request<ApplicationDetail>(`/admin/applications/${id}/reject${q ? `?${q}` : ''}`, {
     method: 'POST',
     body: { note },
     credentials,
   });
 }
 
-export async function requestChangesApplication(id: string, note: string): Promise<ApplicationDetail> {
-  return request<ApplicationDetail>(`/admin/applications/${id}/request-changes`, {
+export async function requestChangesApplication(
+  id: string,
+  note: string,
+  statusType?: 'preRegistration' | 'fullRegistration'
+): Promise<ApplicationDetail> {
+  const searchParams = new URLSearchParams();
+  if (statusType) searchParams.set('statusType', statusType);
+  const q = searchParams.toString();
+  return request<ApplicationDetail>(`/admin/applications/${id}/request-changes${q ? `?${q}` : ''}`, {
     method: 'POST',
     body: { note },
     credentials,
@@ -147,9 +233,13 @@ export async function updateInternalNote(
 export async function updateApplicationStatus(
   id: string,
   status: ApplicationStatus,
-  decisionReason?: string
+  decisionReason?: string,
+  statusType?: 'preRegistration' | 'fullRegistration'
 ): Promise<ApplicationDetail> {
-  return request<ApplicationDetail>(`/admin/applications/${id}/status`, {
+  const searchParams = new URLSearchParams();
+  if (statusType) searchParams.set('statusType', statusType);
+  const q = searchParams.toString();
+  return request<ApplicationDetail>(`/admin/applications/${id}/status${q ? `?${q}` : ''}`, {
     method: 'PATCH',
     body: { status, decisionReason },
     credentials,

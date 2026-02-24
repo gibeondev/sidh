@@ -10,6 +10,8 @@ export interface ApiErrorBody {
   message?: string | string[];
   statusCode?: number;
   error?: string;
+  /** Server validation errors (e.g. from submit full registration) */
+  errors?: string[];
 }
 
 export class ApiError extends Error {

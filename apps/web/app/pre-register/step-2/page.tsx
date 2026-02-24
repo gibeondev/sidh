@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { PreRegisterPayload } from '@/lib/api/preRegistration';
 import { validateStep2 } from '@/lib/pre-register-validation';
+import type { ParentGuardianFieldErrors } from '@/components/pre-register';
 import {
   PreRegisterHeader,
   Stepper,
@@ -23,20 +24,32 @@ export default function PreRegisterStep2Page() {
   const router = useRouter();
   const { watch, setValue } = useFormContext<PreRegisterPayload>();
   const form = watch();
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<ParentGuardianFieldErrors>({});
+  const [pageError, setPageError] = useState<string | null>(null);
 
   const update = (field: keyof PreRegisterPayload, value: string) => {
     setValue(field, value, { shouldValidate: true });
-    setError(null);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field as keyof ParentGuardianFieldErrors];
+      return next;
+    });
+    setPageError(null);
   };
 
   const handleNext = () => {
     const step2Errors = validateStep2(form);
     if (step2Errors.length > 0) {
-      setError(step2Errors.map((e) => e.message).join(' '));
+      const byField: ParentGuardianFieldErrors = {};
+      step2Errors.forEach((e) => {
+        byField[e.field as keyof ParentGuardianFieldErrors] = e.message;
+      });
+      setFieldErrors(byField);
+      setPageError('Periksa kolom yang ditandai di bawah.');
       return;
     }
-    setError(null);
+    setFieldErrors({});
+    setPageError(null);
     router.push('/pre-register/step-3');
   };
 
@@ -51,9 +64,9 @@ export default function PreRegisterStep2Page() {
           onSubmit={(e) => e.preventDefault()}
           className="mt-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm"
         >
-          {error && (
+          {pageError && (
             <div className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700" role="alert">
-              {error}
+              {pageError}
             </div>
           )}
 
@@ -71,6 +84,7 @@ export default function PreRegisterStep2Page() {
               permitExpiryDate: form.permitExpiryDate ?? '',
             }}
             onChange={update}
+            fieldErrors={fieldErrors}
           />
 
           <StepActions

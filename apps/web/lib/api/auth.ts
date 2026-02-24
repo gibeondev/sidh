@@ -47,9 +47,10 @@ class AuthApiClient {
       credentials: 'include',
     });
 
-    if (!response.ok) {
+    if (!response.ok && response.status !== 401) {
       throw new Error('Logout failed');
     }
+    // 401 or success: session is cleared; always redirect on client
   }
 
   async getMe(): Promise<UserResponse | null> {
@@ -69,6 +70,41 @@ class AuthApiClient {
       return response.json();
     } catch (error) {
       return null;
+    }
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const response = await fetch(`${this.baseUrl}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email: email.trim() }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Permintaan gagal' }));
+      const msg = Array.isArray(error.message) ? error.message.join(' ') : (error.message || 'Permintaan gagal');
+      throw new Error(msg);
+    }
+
+    return response.json();
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/auth/me/password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        currentPassword,
+        newPassword,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Gagal mengubah kata sandi' }));
+      const msg = Array.isArray(error.message) ? error.message.join(' ') : (error.message || 'Gagal mengubah kata sandi');
+      throw new Error(msg);
     }
   }
 }

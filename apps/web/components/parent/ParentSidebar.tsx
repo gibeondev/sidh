@@ -8,7 +8,7 @@ import { authApi } from '@/lib/api/auth';
 import type { UserResponse } from '@/lib/api/auth';
 
 const navItems = [
-  { href: '/parent/applications', label: 'Pendaftaran', icon: 'document' },
+  { href: '/parent', label: 'Pendaftaran', icon: 'document' },
   { href: '/parent/settings', label: 'Pengaturan', icon: 'gear' },
 ];
 
@@ -50,17 +50,18 @@ export function ParentSidebar() {
   const handleLogout = async () => {
     try {
       await authApi.logout();
-    } finally {
-      router.push('/login');
-      router.refresh();
+    } catch {
+      // Still redirect so user is not stuck (e.g. network or API error)
     }
+    router.push('/login');
+    router.refresh();
   };
 
   return (
     <aside className="flex w-64 flex-col bg-slate-800">
       <div className="flex flex-col items-center border-b border-slate-700 px-4 py-6">
         <Image
-          src="/images/logo.png"
+          src="/images/logo_black.png"
           alt="Logo"
           width={70}
           height={28}
@@ -85,7 +86,7 @@ export function ParentSidebar() {
 
       <nav className="mt-4 flex-1 space-y-0.5 px-3 py-2">
         {navItems.map(({ href, label, icon }) => {
-          const isActive = pathname === href || (href !== '/parent' && pathname.startsWith(href));
+          const isActive = pathname === href || (href === '/parent' && pathname.startsWith('/parent/applications')) || (href !== '/parent' && pathname.startsWith(href));
           return (
             <Link
               key={href}

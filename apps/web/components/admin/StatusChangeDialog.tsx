@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import type { ApplicationStatus } from '@/lib/api/admin-applications';
 
 const STATUS_LABELS: Record<ApplicationStatus, string> = {
-  DRAFT: 'Draft',
-  SUBMITTED: 'Baru',
+  DRAFT: 'Belum dikirim',
+  SUBMITTED: 'Dikirim',
   UNDER_REVIEW: 'Sedang Ditinjau',
   CHANGES_REQUESTED: 'Perubahan Diminta',
   APPROVED: 'Disetujui',

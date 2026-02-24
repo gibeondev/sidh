@@ -38,6 +38,7 @@ export class AdminApplicationsController {
     @Query('country') country?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: string,
+    @Query('hasFullRegistration') hasFullRegistration?: string,
   ) {
     const statusEnum = status && this.isApplicationStatus(status) ? (status as ApplicationStatus) : undefined;
     const order = sortOrder === 'asc' || sortOrder === 'desc' ? sortOrder : undefined;
@@ -50,6 +51,7 @@ export class AdminApplicationsController {
       country: country || undefined,
       sortBy: sortBy || undefined,
       sortOrder: order,
+      hasFullRegistration: hasFullRegistration === 'true' || hasFullRegistration === '1',
     });
   }
 
@@ -59,17 +61,35 @@ export class AdminApplicationsController {
   }
 
   @Post(':id/approve')
-  async approve(@Param('id') id: string) {
-    return this.applicationsService.adminApprove(id);
+  async approve(
+    @Param('id') id: string,
+    @Query('statusType') statusType?: string,
+  ) {
+    const type = statusType === 'preRegistration' ? 'preRegistration' : 'fullRegistration';
+    return this.applicationsService.adminApprove(id, type);
   }
 
   @Post(':id/reject')
-  async reject(@Param('id') id: string, @Body() dto: DecisionNoteDto) {
+  async reject(
+    @Param('id') id: string,
+    @Body() dto: DecisionNoteDto,
+    @Query('statusType') statusType?: string,
+  ) {
+    if (statusType === 'preRegistration' || statusType === 'fullRegistration') {
+      dto.statusType = statusType;
+    }
     return this.applicationsService.adminReject(id, dto);
   }
 
   @Post(':id/request-changes')
-  async requestChanges(@Param('id') id: string, @Body() dto: DecisionNoteDto) {
+  async requestChanges(
+    @Param('id') id: string,
+    @Body() dto: DecisionNoteDto,
+    @Query('statusType') statusType?: string,
+  ) {
+    if (statusType === 'preRegistration' || statusType === 'fullRegistration') {
+      dto.statusType = statusType;
+    }
     return this.applicationsService.adminRequestChanges(id, dto);
   }
 
@@ -79,7 +99,14 @@ export class AdminApplicationsController {
   }
 
   @Patch(':id/status')
-  async updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateStatusDto,
+    @Query('statusType') statusType?: string,
+  ) {
+    if (statusType === 'preRegistration' || statusType === 'fullRegistration') {
+      dto.statusType = statusType;
+    }
     return this.applicationsService.adminUpdateStatus(id, dto);
   }
 

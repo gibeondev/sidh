@@ -47,13 +47,17 @@ export interface StudentDataStepProps {
     | 'phoneNumber'
   >;
   onChange: (field: keyof FullRegistrationPayload, value: string) => void;
+  readOnly?: boolean;
 }
 
 /**
  * Step 1 — Data Siswa. Form fields per Figma Full Registration design.
  * Uses FormRow 2-column layout; reuses pre-register FormRow.
  */
-export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
+export function StudentDataStep({ data, onChange, readOnly = false }: StudentDataStepProps) {
+  const handleChange = readOnly ? () => {} : onChange;
+  const disabled = readOnly;
+
   return (
     <section aria-labelledby="data-siswa-heading" className="space-y-5">
       <h2
@@ -68,7 +72,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="studentName"
             value={data.studentName}
-            onChange={(e) => onChange('studentName', e.target.value)}
+            onChange={(e) => handleChange('studentName', e.target.value)}
+            disabled={disabled}
             placeholder="nama lengkap"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -83,9 +88,10 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             <RadioGroup
               name="programChoice"
               value={data.programChoice}
-              onChange={(v) => onChange('programChoice', v)}
+              onChange={(v) => handleChange('programChoice', v)}
               options={PROGRAM_OPTIONS}
               aria-label="Mendaftar untuk program"
+              disabled={disabled}
             />
           </div>
         </div>
@@ -94,7 +100,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="gradeApplied"
             value={data.gradeApplied}
-            onChange={(e) => onChange('gradeApplied', e.target.value)}
+            onChange={(e) => handleChange('gradeApplied', e.target.value)}
+            disabled={disabled}
             placeholder="kelas yang didaftarkan"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -109,9 +116,10 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             <RadioGroup
               name="studentGender"
               value={data.studentGender}
-              onChange={(v) => onChange('studentGender', v)}
+              onChange={(v) => handleChange('studentGender', v)}
               options={GENDER_OPTIONS}
               aria-label="Jenis kelamin"
+              disabled={disabled}
             />
           </div>
         </div>
@@ -131,7 +139,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="birthPlace"
             value={data.birthPlace}
-            onChange={(e) => onChange('birthPlace', e.target.value)}
+            onChange={(e) => handleChange('birthPlace', e.target.value)}
+            disabled={disabled}
             placeholder="TTL (tempat lahir)"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -141,7 +150,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="nik"
             value={data.nik}
-            onChange={(e) => onChange('nik', e.target.value)}
+            onChange={(e) => handleChange('nik', e.target.value)}
+            disabled={disabled}
             placeholder="NIK"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -151,7 +161,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="religion"
             value={data.religion}
-            onChange={(e) => onChange('religion', e.target.value)}
+            onChange={(e) => handleChange('religion', e.target.value)}
+            disabled={disabled}
             placeholder="Agama"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -163,7 +174,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             type="text"
             inputMode="numeric"
             value={data.heightCm}
-            onChange={(e) => onChange('heightCm', e.target.value)}
+            onChange={(e) => handleChange('heightCm', e.target.value)}
+            disabled={disabled}
             placeholder="Tinggi badan (cm)"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -175,7 +187,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             type="text"
             inputMode="numeric"
             value={data.weightKg}
-            onChange={(e) => onChange('weightKg', e.target.value)}
+            onChange={(e) => handleChange('weightKg', e.target.value)}
+            disabled={disabled}
             placeholder="Berat badan (kg)"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -195,7 +208,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="lastSchoolIndonesia"
             value={data.lastSchoolIndonesia}
-            onChange={(e) => onChange('lastSchoolIndonesia', e.target.value)}
+            onChange={(e) => handleChange('lastSchoolIndonesia', e.target.value)}
+            disabled={disabled}
             placeholder="Tahun terakhir bersekolah di Indonesia"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -205,7 +219,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="currentSchoolName"
             value={data.currentSchoolName}
-            onChange={(e) => onChange('currentSchoolName', e.target.value)}
+            onChange={(e) => handleChange('currentSchoolName', e.target.value)}
+            disabled={disabled}
             placeholder="Nama sekolah"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -215,7 +230,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="currentSchoolCountry"
             value={data.currentSchoolCountry}
-            onChange={(e) => onChange('currentSchoolCountry', e.target.value)}
+            onChange={(e) => handleChange('currentSchoolCountry', e.target.value)}
+            disabled={disabled}
             placeholder="Negara"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -225,7 +241,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="childOrder"
             value={data.childOrder}
-            onChange={(e) => onChange('childOrder', e.target.value)}
+            onChange={(e) => handleChange('childOrder', e.target.value)}
+            disabled={disabled}
             placeholder="Anak ke berapa"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -235,7 +252,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="siblingCount"
             value={data.siblingCount}
-            onChange={(e) => onChange('siblingCount', e.target.value)}
+            onChange={(e) => handleChange('siblingCount', e.target.value)}
+            disabled={disabled}
             placeholder="Jumlah saudara kandung"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -245,7 +263,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="lastDiplomaSerialNumber"
             value={data.lastDiplomaSerialNumber}
-            onChange={(e) => onChange('lastDiplomaSerialNumber', e.target.value)}
+            onChange={(e) => handleChange('lastDiplomaSerialNumber', e.target.value)}
+            disabled={disabled}
             placeholder="Nomor seri ijazah terakhir"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -260,9 +279,10 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             <RadioGroup
               name="hasSpecialNeeds"
               value={data.hasSpecialNeeds}
-              onChange={(v) => onChange('hasSpecialNeeds', v)}
+              onChange={(v) => handleChange('hasSpecialNeeds', v)}
               options={SPECIAL_NEEDS_OPTIONS}
               aria-label="Informasi berkebutuhan khusus"
+              disabled={disabled}
             />
           </div>
         </div>
@@ -271,7 +291,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="addressIndonesia"
             value={data.addressIndonesia}
-            onChange={(e) => onChange('addressIndonesia', e.target.value)}
+            onChange={(e) => handleChange('addressIndonesia', e.target.value)}
+            disabled={disabled}
             placeholder="Alamat tinggal Indonesia"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -281,7 +302,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
           <Input
             id="domicileRegion"
             value={data.domicileRegion}
-            onChange={(e) => onChange('domicileRegion', e.target.value)}
+            onChange={(e) => handleChange('domicileRegion', e.target.value)}
+            disabled={disabled}
             placeholder="Alamat tinggal domisili penugasan orang tua"
             className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
@@ -303,7 +325,8 @@ export function StudentDataStep({ data, onChange }: StudentDataStepProps) {
             <Input
               id="phoneNumber"
               value={data.phoneNumber}
-              onChange={(e) => onChange('phoneNumber', e.target.value)}
+              onChange={(e) => handleChange('phoneNumber', e.target.value)}
+              disabled={disabled}
               placeholder="Nomor telepon"
               className="flex-1 !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />

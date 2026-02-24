@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   UseGuards,
   Request,
 } from '@nestjs/common';
@@ -49,6 +50,22 @@ export class ParentApplicationsController {
       parentEmail,
       role,
       dto,
+    );
+  }
+
+  @Post(':id/submit')
+  async submit(
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    const parentUserId = req.user.sub;
+    const parentEmail = req.user.email;
+    const role = req.user.role;
+    return this.applicationsService.parentSubmitFullRegistration(
+      id,
+      parentUserId,
+      parentEmail,
+      role,
     );
   }
 }

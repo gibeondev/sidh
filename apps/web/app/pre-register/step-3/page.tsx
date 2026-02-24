@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { PreRegisterPayload } from '@/lib/api/preRegistration';
 import { validateStep3 } from '@/lib/pre-register-validation';
+import type { StudentIdentityFieldErrors } from '@/components/pre-register';
 import {
   PreRegisterHeader,
   Stepper,
@@ -24,20 +25,32 @@ export default function PreRegisterStep3Page() {
   const router = useRouter();
   const { watch, setValue } = useFormContext<PreRegisterPayload>();
   const form = watch();
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<StudentIdentityFieldErrors>({});
+  const [pageError, setPageError] = useState<string | null>(null);
 
   const update = (field: keyof PreRegisterPayload, value: string) => {
     setValue(field, value, { shouldValidate: true });
-    setError(null);
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field as keyof StudentIdentityFieldErrors];
+      return next;
+    });
+    setPageError(null);
   };
 
   const handleNext = () => {
     const step3Errors = validateStep3(form);
     if (step3Errors.length > 0) {
-      setError(step3Errors.map((e) => e.message).join(' '));
+      const byField: StudentIdentityFieldErrors = {};
+      step3Errors.forEach((e) => {
+        byField[e.field as keyof StudentIdentityFieldErrors] = e.message;
+      });
+      setFieldErrors(byField);
+      setPageError('Periksa kolom yang ditandai di bawah.');
       return;
     }
-    setError(null);
+    setFieldErrors({});
+    setPageError(null);
     router.push('/pre-register/step-4');
   };
 
@@ -52,9 +65,9 @@ export default function PreRegisterStep3Page() {
           onSubmit={(e) => e.preventDefault()}
           className="mt-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm"
         >
-          {error && (
+          {pageError && (
             <div className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700" role="alert">
-              {error}
+              {pageError}
             </div>
           )}
 
@@ -70,6 +83,7 @@ export default function PreRegisterStep3Page() {
               nisn: form.nisn ?? '',
             }}
             onChange={update}
+            fieldErrors={fieldErrors}
           />
 
           <StepActions currentStep={STEP} nextLabel="Lanjut" onNextClick={handleNext} />

@@ -69,4 +69,59 @@ export class AuthService {
 
     return user;
   }
+
+  /**
+   * Request password reset by email. Only PARENT accounts get reset flow.
+   * ADMIN: return message to contact administrator.
+   * PARENT: TODO send reset email; return generic success.
+   * Not found: return same generic success (no user enumeration).
+   */
+  async requestForgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email.trim() },
+      select: { role: true },
+    });
+
+    const genericMessage =
+      'Jika email terdaftar sebagai orang tua/wali, Anda akan menerima instruksi di email Anda.';
+
+    if (!user) {
+      return { message: genericMessage };
+    }
+
+    if (user.role === 'ADMIN') {
+      return {
+        message:
+          'Untuk reset kata sandi akun admin, hubungi administrator.',
+      };
+    }
+
+    // PARENT: TODO — generate reset token, store it, send email with reset link
+    // await this.sendPasswordResetEmail(email, token);
+    return { message: genericMessage };
+  }
+
+  /** Change password for logged-in user (e.g. parent). Verifies current password then updates. */
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true },
+    });
+    if (!user) throw new UnauthorizedException();
+
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) {
+      throw new UnauthorizedException('Kata sandi saat ini salah.');
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash },
+    });
+  }
 }

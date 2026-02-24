@@ -7,11 +7,13 @@ export { FormRow } from './FormRow';
 export {
   ParentGuardianStep,
   type ParentGuardianData,
+  type ParentGuardianFieldErrors,
   type ParentGuardianStepProps,
 } from './ParentGuardianStep';
 export {
   StudentIdentityStep,
   type StudentIdentityData,
+  type StudentIdentityFieldErrors,
   type StudentIdentityStepProps,
 } from './StudentIdentityStep';
 export { RegistrationProcedureStep } from './RegistrationProcedureStep';

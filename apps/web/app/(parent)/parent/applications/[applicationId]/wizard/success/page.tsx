@@ -15,7 +15,7 @@ export default function WizardSuccessPage() {
           Formulir pendaftaran lengkap Anda telah berhasil dikirim. Silakan menunggu konfirmasi dari sekolah.
         </p>
         <div className="mt-8">
-          <Link href="/parent/applications">
+          <Link href="/parent">
             <Button>Kembali ke Daftar Aplikasi</Button>
           </Link>
         </div>

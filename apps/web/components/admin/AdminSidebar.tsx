@@ -9,7 +9,7 @@ import type { UserResponse } from '@/lib/api/auth';
 
 const navItems = [
   { href: '/admin/applications', label: 'Pra-Registrasi', icon: 'document-check' },
-  { href: '/admin/registration-periods', label: 'Registrasi Lengkap', icon: 'clipboard-clock' },
+  { href: '/admin/full-registrations', label: 'Registrasi Lengkap', icon: 'clipboard-clock' },
   { href: '/admin/students', label: 'Daftar Siswa', icon: 'person' },
   { href: '/admin/settings', label: 'Pengaturan', icon: 'gear' },
 ];
@@ -65,17 +65,18 @@ export function AdminSidebar() {
   const handleLogout = async () => {
     try {
       await authApi.logout();
-    } finally {
-      router.push('/login');
-      router.refresh();
+    } catch {
+      // Still redirect so user is not stuck (e.g. network or API error)
     }
+    router.push('/login');
+    router.refresh();
   };
 
   return (
     <aside className="flex w-64 flex-col bg-slate-800">
       <div className="flex flex-col items-center border-b border-slate-700 px-4 py-6">
         <Image
-          src="/images/logo.png"
+          src="/images/logo_black.png"
           alt="Logo"
           width={70}
           height={28}

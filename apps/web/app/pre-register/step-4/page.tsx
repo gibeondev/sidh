@@ -12,7 +12,7 @@ import {
   StepActions,
   ReviewConfirmStep,
 } from '@/components/pre-register';
-import { validatePreRegisterForm } from '@/lib/pre-register-validation';
+import { validatePreRegisterForm, type FieldError } from '@/lib/pre-register-validation';
 
 const STEP = 4 as const;
 
@@ -30,13 +30,16 @@ export default function PreRegisterStep4Page() {
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitFieldErrors, setSubmitFieldErrors] = useState<FieldError[]>([]);
 
   const handleSubmit = async () => {
     setSubmitError(null);
+    setSubmitFieldErrors([]);
     clearErrors();
     const payload = getValues() as PreRegisterPayload;
     const fieldErrors = validatePreRegisterForm(payload);
     if (fieldErrors.length > 0) {
+      setSubmitFieldErrors(fieldErrors);
       fieldErrors.forEach(({ field, message }) => setError(field, { message }));
       setSubmitError('Periksa data yang wajib diisi dan format yang benar.');
       return;
@@ -71,8 +74,6 @@ export default function PreRegisterStep4Page() {
     }
   };
 
-  const form = getValues();
-
   return (
     <main className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
@@ -83,10 +84,17 @@ export default function PreRegisterStep4Page() {
         <div className="mt-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
           {submitError && (
             <div
-              className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700"
+              className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700 space-y-2"
               role="alert"
             >
-              {submitError}
+              <p>{submitError}</p>
+              {submitFieldErrors.length > 0 && (
+                <ul className="list-disc list-inside mt-2 space-y-0.5">
+                  {submitFieldErrors.map((e) => (
+                    <li key={e.field}>{e.message}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
 

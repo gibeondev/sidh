@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import type { ApplicationStatus } from '@/lib/api/admin-applications';
 
 const LABEL: Record<ApplicationStatus, string> = {
-  DRAFT: 'Draft',
-  SUBMITTED: 'Baru',
+  DRAFT: 'Belum dikirim',
+  SUBMITTED: 'Dikirim',
   UNDER_REVIEW: 'Sedang Ditinjau',
   CHANGES_REQUESTED: 'Perubahan Diminta',
   APPROVED: 'Disetujui',
@@ -13,8 +13,8 @@ const LABEL: Record<ApplicationStatus, string> = {
 };
 
 const VARIANT: Record<ApplicationStatus, 'baru' | 'ditinjau' | 'disetujui' | 'ditolak' | 'default' | 'secondary'> = {
-  DRAFT: 'secondary',
-  SUBMITTED: 'baru',
+  DRAFT: 'baru',
+  SUBMITTED: 'ditinjau',
   UNDER_REVIEW: 'ditinjau',
   CHANGES_REQUESTED: 'ditinjau',
   APPROVED: 'disetujui',

@@ -37,17 +37,22 @@ const EDUCATION_LOCATION_OPTIONS = [
   { value: 'Luar negeri', label: 'Luar negeri' },
 ];
 
+export type StudentIdentityFieldErrors = Partial<Record<keyof StudentIdentityData, string>>;
+
 export interface StudentIdentityStepProps {
   data: StudentIdentityData;
   onChange: (field: keyof StudentIdentityData, value: string) => void;
+  fieldErrors?: StudentIdentityFieldErrors;
 }
+
+const inputErrorClass = '!border-red-500';
 
 /**
  * Student Identity form step: 2-column grid, FormRow for standard rows.
  * Exceptions: radio group rows (program, education level, gender, education location).
  * Field names aligned with PreRegisterRequest.
  */
-export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps) {
+export function StudentIdentityStep({ data, onChange, fieldErrors }: StudentIdentityStepProps) {
   const [selectedFileName, setSelectedFileName] = useState<string>('Tidak ada file yang dipilih');
 
   return (
@@ -66,7 +71,7 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
             Mendaftar untuk program
             <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
           </label>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-1">
             <RadioGroup
               name="programChoice"
               value={data.programChoice}
@@ -74,6 +79,9 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
               options={PROGRAM_OPTIONS}
               aria-label="Mendaftar untuk program"
             />
+            {fieldErrors?.programChoice && (
+              <p className="text-sm text-red-600" role="alert">{fieldErrors.programChoice}</p>
+            )}
           </div>
         </div>
 
@@ -83,7 +91,7 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
             Jenjang pendidikan
             <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
           </label>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-1">
             <RadioGroup
               name="educationLevel"
               value={data.educationLevel}
@@ -91,20 +99,24 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
               options={EDUCATION_LEVEL_OPTIONS}
               aria-label="Jenjang pendidikan"
             />
+            {fieldErrors?.educationLevel && (
+              <p className="text-sm text-red-600" role="alert">{fieldErrors.educationLevel}</p>
+            )}
           </div>
         </div>
 
-        <FormRow label="Kelas" required>
+        <FormRow label="Kelas" required error={fieldErrors?.gradeApplied}>
           <Input
             id="gradeApplied"
             type="text"
             placeholder="Kelas"
             value={data.gradeApplied}
             onChange={(e) => onChange('gradeApplied', e.target.value)}
+            className={fieldErrors?.gradeApplied ? inputErrorClass : ''}
           />
         </FormRow>
 
-        <FormRow label="Nama calon siswa" required>
+        <FormRow label="Nama calon siswa" required error={fieldErrors?.studentName}>
           <Input
             id="studentName"
             type="text"
@@ -112,6 +124,7 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
             placeholder="Nama calon siswa"
             value={data.studentName}
             onChange={(e) => onChange('studentName', e.target.value)}
+            className={fieldErrors?.studentName ? inputErrorClass : ''}
           />
         </FormRow>
 
@@ -121,7 +134,7 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
             Jenis kelamin
             <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
           </label>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-1">
             <RadioGroup
               name="studentGender"
               value={data.studentGender}
@@ -129,6 +142,9 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
               options={GENDER_OPTIONS}
               aria-label="Jenis kelamin"
             />
+            {fieldErrors?.studentGender && (
+              <p className="text-sm text-red-600" role="alert">{fieldErrors.studentGender}</p>
+            )}
           </div>
         </div>
 
@@ -138,7 +154,7 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
             Riwayat pendidikan terakhir
             <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
           </label>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-1">
             <RadioGroup
               name="lastEducationLocation"
               value={data.lastEducationLocation}
@@ -146,16 +162,20 @@ export function StudentIdentityStep({ data, onChange }: StudentIdentityStepProps
               options={EDUCATION_LOCATION_OPTIONS}
               aria-label="Riwayat pendidikan terakhir"
             />
+            {fieldErrors?.lastEducationLocation && (
+              <p className="text-sm text-red-600" role="alert">{fieldErrors.lastEducationLocation}</p>
+            )}
           </div>
         </div>
 
-        <FormRow label="Tanggal lahir" required>
+        <FormRow label="Tanggal lahir" required error={fieldErrors?.studentBirthDate}>
           <Input
             id="studentBirthDate"
             type="date"
             value={data.studentBirthDate}
             onChange={(e) => onChange('studentBirthDate', e.target.value)}
             aria-label="Tanggal lahir"
+            className={fieldErrors?.studentBirthDate ? inputErrorClass : ''}
           />
         </FormRow>
 

@@ -522,7 +522,7 @@ function ApplicationRow({
       <TableCell>{pr?.assignmentCountry ?? '–'}</TableCell>
       <TableCell>{formatDate(row.submittedAt ?? row.createdAt)}</TableCell>
       <TableCell>
-        <StatusBadge status={row.status} />
+        <StatusBadge status={pr?.status ?? row.status} />
       </TableCell>
     </TableRow>
   );

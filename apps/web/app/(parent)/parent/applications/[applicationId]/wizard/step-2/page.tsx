@@ -5,9 +5,10 @@ import { useRouter, useParams } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { FullRegistrationPayload } from '@/lib/api/fullRegistration';
 import { validateStep2 } from '@/lib/full-registration-validation';
-import { updateApplication, ApiError } from '@/lib/api/fullRegistration';
+import { updateApplication, buildDraftPayload, ApiError } from '@/lib/api/fullRegistration';
 import { FullRegistrationHeader, WizardStepActions } from '@/components/full-registration';
 import { ParentGuardianStep2 } from '@/components/full-registration/steps';
+import { useWizardReadOnly } from '../WizardContext';
 
 const STEP = 2 as const;
 
@@ -15,13 +16,32 @@ export default function WizardStep2Page() {
   const router = useRouter();
   const params = useParams();
   const applicationId = params?.applicationId as string | undefined;
+  const readOnly = useWizardReadOnly();
   const { watch, setValue } = useFormContext<FullRegistrationPayload>();
   const form = watch();
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [saveDraftLoading, setSaveDraftLoading] = useState(false);
 
   const update = (field: keyof FullRegistrationPayload, value: string) => {
     setValue(field, value, { shouldValidate: true });
     setError(null);
+    setSuccess(null);
+  };
+
+  const handleSaveDraft = async () => {
+    if (!applicationId) return;
+    setSaveDraftLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await updateApplication(applicationId, buildDraftPayload(form));
+      setSuccess('Draft berhasil disimpan.');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Gagal menyimpan draft.');
+    } finally {
+      setSaveDraftLoading(false);
+    }
   };
 
   const handleNext = async () => {
@@ -31,62 +51,13 @@ export default function WizardStep2Page() {
       return;
     }
     setError(null);
-    
-    // Save Step 2 data as draft
     try {
       if (applicationId) {
-        await updateApplication(applicationId, {
-          contacts: [
-            {
-              relationship: 'Father' as const,
-              fullName: form.fatherFullName,
-              birthPlace: form.fatherBirthPlace,
-              birthDate: form.fatherBirthDate,
-              nik: form.fatherNik,
-              educationLevel: form.fatherEducationLevel,
-              occupation: form.fatherOccupation,
-              incomeRange: form.fatherIncomeRange,
-              phone: form.fatherPhone,
-              email: form.fatherEmail,
-            },
-            {
-              relationship: 'Mother' as const,
-              fullName: form.motherFullName,
-              birthPlace: form.motherBirthPlace,
-              birthDate: form.motherBirthDate,
-              nik: form.motherNik,
-              educationLevel: form.motherEducationLevel,
-              occupation: form.motherOccupation,
-              incomeRange: form.motherIncomeRange,
-              phone: form.motherPhone,
-              email: form.motherEmail,
-            },
-            ...(form.guardianFullName
-              ? [
-                  {
-                    relationship: 'Guardian' as const,
-                    fullName: form.guardianFullName,
-                    birthPlace: form.guardianBirthPlace,
-                    birthDate: form.guardianBirthDate,
-                    nik: form.guardianNik,
-                    educationLevel: form.guardianEducationLevel,
-                    occupation: form.guardianOccupation,
-                    incomeRange: form.guardianIncomeRange,
-                    phone: form.guardianPhone,
-                    email: form.guardianEmail,
-                  },
-                ]
-              : []),
-          ],
-        });
+        await updateApplication(applicationId, buildDraftPayload(form));
         router.push(`/parent/applications/${applicationId}/wizard/step-3`);
       }
     } catch (err) {
-      const message =
-        err instanceof ApiError && err.message
-          ? err.message
-          : 'Gagal menyimpan data. Silakan coba lagi.';
-      setError(message);
+      setError(err instanceof ApiError ? err.message : 'Gagal menyimpan data. Silakan coba lagi.');
     }
   };
 
@@ -99,6 +70,11 @@ export default function WizardStep2Page() {
           onSubmit={(e) => e.preventDefault()}
           className="mt-8 rounded-lg border border-gray-200 bg-white p-8 shadow-sm"
         >
+          {success && (
+            <div className="mb-6 rounded-md bg-green-50 p-4 text-sm text-green-800" role="status">
+              {success}
+            </div>
+          )}
           {error && (
             <div className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700" role="alert">
               {error}
@@ -138,7 +114,14 @@ export default function WizardStep2Page() {
             onChange={update}
           />
 
-          <WizardStepActions currentStep={STEP} nextLabel="Lanjut" onNextClick={handleNext} />
+          <WizardStepActions
+            currentStep={STEP}
+            nextLabel="Lanjut"
+            onNextClick={handleNext}
+            onSaveDraft={handleSaveDraft}
+            saveDraftLoading={saveDraftLoading}
+            readOnly={readOnly}
+          />
         </form>
       </div>
     </main>
