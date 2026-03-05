@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   getAdminApplications,
   getAdminFilterOptions,
+  exportFullRegistrationsCsv,
   ApiError,
   type ApplicationStatus,
   type ApplicationListItem,
@@ -58,7 +59,7 @@ function SortHeader({
     <button
       type="button"
       onClick={() => onSort(sortKey)}
-      className="inline-flex items-center gap-0.5 font-semibold uppercase tracking-wider text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
+      className="inline-flex items-center gap-0.5 font-extrabold uppercase tracking-wider text-gray-800 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
     >
       {label}
       <span className="inline-flex flex-col text-gray-400" aria-hidden>
@@ -113,6 +114,7 @@ export default function AdminFullRegistrationsPage() {
   const [data, setData] = useState<AdminApplicationsListResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -196,6 +198,22 @@ export default function AdminFullRegistrationsPage() {
     setPage(1);
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportFullRegistrationsCsv({
+        status: status === '' ? undefined : (status as ApplicationStatus),
+        search: search || undefined,
+        program: program || undefined,
+        country: country || undefined,
+      });
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : 'Gagal mengekspor data.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 0;
   const items = data?.items ?? [];
 
@@ -207,7 +225,7 @@ export default function AdminFullRegistrationsPage() {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-          <form onSubmit={handleSearchSubmit} className="relative flex flex-1 min-w-[240px] max-w-md">
+          <form onSubmit={handleSearchSubmit} className="relative flex w-[240px]">
             <span className="sr-only">Cari Nama / No.</span>
             <Input
               type="search"
@@ -237,22 +255,34 @@ export default function AdminFullRegistrationsPage() {
           </Button>
           <Select
             options={STATUS_OPTIONS}
-            className="w-[150px]"
+            className="!w-auto"
             value={status}
             onChange={(e) => { setStatus(e.target.value as StatusFilterValue); setPage(1); }}
           />
           <Select
             options={[{ value: '', label: 'Semua Program' }, ...filterOptions.programs.map((p) => ({ value: p, label: p }))]}
-            className="w-[130px]"
+            className="!w-auto"
             value={program}
             onChange={(e) => { setProgram(e.target.value); setPage(1); }}
           />
           <Select
             options={[{ value: '', label: 'Semua Negara' }, ...filterOptions.countries.map((c) => ({ value: c, label: c }))]}
-            className="w-[130px]"
+            className="!w-auto"
             value={country}
             onChange={(e) => { setCountry(e.target.value); setPage(1); }}
           />
+          <div className="flex-1" />
+          <Button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting || loading}
+            className="gap-1.5"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            {exporting ? 'Mengekspor...' : 'Export CSV'}
+          </Button>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white">
@@ -275,7 +305,7 @@ export default function AdminFullRegistrationsPage() {
                 <TableHead>
                   <SortHeader label="Tanggal Submit" sortKey="submittedAt" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} />
                 </TableHead>
-                <TableHead>
+                <TableHead className="w-[130px]">
                   <SortHeader label="Status" sortKey="status" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} />
                 </TableHead>
               </TableRow>
@@ -443,7 +473,9 @@ function ApplicationRow({
       <TableCell>{pr?.assignmentCountry ?? '–'}</TableCell>
       <TableCell>{formatDate(row.submittedAt ?? row.createdAt)}</TableCell>
       <TableCell>
-        <StatusBadge status={row.status} />
+        <span className="inline-block w-[130px]">
+          <StatusBadge status={row.status} />
+        </span>
       </TableCell>
     </TableRow>
   );

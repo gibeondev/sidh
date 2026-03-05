@@ -54,13 +54,15 @@ export class ApplicationsService {
 
     const applicationNo = await this.generateApplicationNo(period.id);
 
+    const submittedAt = new Date();
     const result = await this.prisma.$transaction(async (tx) => {
       const application = await tx.application.create({
         data: {
           applicationNo,
           applicantEmail: dto.applicantEmail,
           registrationPeriodId: period.id,
-          status: ApplicationStatus.DRAFT,
+          status: ApplicationStatus.SUBMITTED,
+          submittedAt,
         },
       });
 
@@ -84,6 +86,8 @@ export class ApplicationsService {
           studentBirthDate: new Date(dto.studentBirthDate),
           lastEducationLocation: dto.lastEducationLocation,
           nisn: dto.nisn ?? null,
+          status: ApplicationStatus.SUBMITTED,
+          submittedAt,
         },
       });
 
@@ -129,12 +133,13 @@ export class ApplicationsService {
     const programVal = program != null && String(program).trim() !== '' ? String(program).trim() : null;
     const countryVal = country != null && String(country).trim() !== '' ? String(country).trim() : null;
     if (programVal) {
-      and.push({
-        OR: [
-          { preRegistration: { programChoice: programVal } },
-          { registrationSubmission: { programChoice: programVal } },
-        ],
-      });
+      // For full registrations list, filter by the *final* program choice from registrationSubmission.
+      // For pre-registration list, filter by the preRegistration programChoice.
+      if (hasFullRegistration) {
+        and.push({ registrationSubmission: { programChoice: programVal } });
+      } else {
+        and.push({ preRegistration: { programChoice: programVal } });
+      }
     }
     if (countryVal) {
       and.push({ preRegistration: { assignmentCountry: countryVal } });
@@ -1033,5 +1038,168 @@ export class ApplicationsService {
       return `APP-${year}-${Date.now()}`;
     }
     return candidate;
+  }
+
+  /**
+   * Export full registrations as CSV for admin decision-making.
+   * Includes only fields relevant for acceptance decisions (no sensitive PII like NIK, addresses, phone numbers).
+   */
+  async adminExportFullRegistrations(params: {
+    status?: ApplicationStatus;
+    search?: string;
+    program?: string;
+    country?: string;
+  }): Promise<string> {
+    const { status, search, program, country } = params;
+    const term = search?.trim();
+    const and: object[] = [
+      { preRegistration: { isNot: null } },
+      { registrationSubmission: { isNot: null } },
+    ];
+    if (status) and.push({ status });
+    if (term) {
+      and.push({
+        OR: [
+          { applicationNo: { contains: term, mode: 'insensitive' as const } },
+          { preRegistration: { studentName: { contains: term, mode: 'insensitive' as const } } },
+          { registrationSubmission: { studentFullName: { contains: term, mode: 'insensitive' as const } } },
+        ],
+      });
+    }
+    const programVal = program?.trim() || null;
+    const countryVal = country?.trim() || null;
+    if (programVal) {
+      and.push({
+        OR: [
+          { preRegistration: { programChoice: programVal } },
+          { registrationSubmission: { programChoice: programVal } },
+        ],
+      });
+    }
+    if (countryVal) {
+      and.push({ preRegistration: { assignmentCountry: countryVal } });
+    }
+    const where = and.length === 1 ? and[0] : { AND: and };
+
+    const applications = await this.prisma.application.findMany({
+      where,
+      include: {
+        preRegistration: true,
+        registrationSubmission: true,
+        contacts: true,
+        documents: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const headers = [
+      'No Aplikasi',
+      'Status',
+      'Tanggal Submit',
+      'Nama Siswa',
+      'Program',
+      'Kelas',
+      'Jenis Kelamin',
+      'Tanggal Lahir',
+      'Sekolah Saat Ini',
+      'Negara Sekolah',
+      'Sekolah Terakhir Indonesia',
+      'NISN',
+      'No Ijazah Terakhir',
+      'Negara Penugasan Ortu',
+      'Wilayah Domisili',
+      'Periode Domisili Mulai',
+      'Periode Domisili Akhir',
+      'Jenis Visa',
+      'Kebutuhan Khusus',
+      'Keterangan Kebutuhan Khusus',
+      'Informasi Tambahan',
+      'Pekerjaan Ayah',
+      'Pekerjaan Ibu',
+      'Dokumen Lengkap',
+      'Dokumen Belum Disetujui',
+    ];
+
+    const statusLabels: Record<string, string> = {
+      DRAFT: 'Belum dikirim',
+      SUBMITTED: 'Dikirim',
+      UNDER_REVIEW: 'Sedang Ditinjau',
+      CHANGES_REQUESTED: 'Perubahan Diminta',
+      APPROVED: 'Disetujui',
+      REJECTED: 'Ditolak',
+    };
+
+    const genderLabels: Record<string, string> = {
+      MALE: 'Laki-laki',
+      FEMALE: 'Perempuan',
+    };
+
+    const formatDate = (d: Date | string | null | undefined): string => {
+      if (!d) return '';
+      try {
+        const date = typeof d === 'string' ? new Date(d) : d;
+        if (date.getTime() === 0) return '';
+        return date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      } catch {
+        return '';
+      }
+    };
+
+    const escapeCsv = (val: string | null | undefined): string => {
+      if (val == null) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = applications.map((app) => {
+      const rs = app.registrationSubmission;
+      const pr = app.preRegistration;
+      const contacts = app.contacts || [];
+      const documents = app.documents || [];
+
+      const fatherContact = contacts.find((c) => c.relationship === 'Father');
+      const motherContact = contacts.find((c) => c.relationship === 'Mother');
+
+      const totalDocs = documents.length;
+      const approvedDocs = documents.filter((d) => d.status === 'APPROVED').length;
+      const docsComplete = totalDocs > 0 && approvedDocs === totalDocs ? 'Ya' : 'Tidak';
+      const pendingDocs = documents
+        .filter((d) => d.status !== 'APPROVED')
+        .map((d) => d.documentType)
+        .join(', ');
+
+      return [
+        escapeCsv(app.applicationNo),
+        escapeCsv(statusLabels[app.status] || app.status),
+        escapeCsv(formatDate(app.submittedAt)),
+        escapeCsv(rs?.studentFullName || pr?.studentName || ''),
+        escapeCsv(rs?.programChoice || pr?.programChoice || ''),
+        escapeCsv(rs?.gradeApplied || pr?.gradeApplied || ''),
+        escapeCsv(genderLabels[rs?.studentGender || ''] || rs?.studentGender || ''),
+        escapeCsv(formatDate(rs?.studentBirthDate || pr?.studentBirthDate)),
+        escapeCsv(rs?.currentSchoolName || ''),
+        escapeCsv(rs?.currentSchoolCountry || ''),
+        escapeCsv(rs?.lastSchoolIndonesia || ''),
+        escapeCsv(rs?.nisn || pr?.nisn || ''),
+        escapeCsv(rs?.lastDiplomaSerialNumber || ''),
+        escapeCsv(rs?.parentServiceCountry || pr?.assignmentCountry || ''),
+        escapeCsv(rs?.domicileRegion || ''),
+        escapeCsv(formatDate(rs?.domicilePeriodStart)),
+        escapeCsv(formatDate(rs?.domicilePeriodEnd)),
+        escapeCsv(rs?.parentVisaType || ''),
+        escapeCsv(rs?.hasSpecialNeeds === 'YES' ? 'Ya' : rs?.hasSpecialNeeds === 'NO' ? 'Tidak' : ''),
+        escapeCsv(rs?.description || ''),
+        escapeCsv(rs?.additionalInfo || ''),
+        escapeCsv(fatherContact?.occupation || ''),
+        escapeCsv(motherContact?.occupation || ''),
+        escapeCsv(docsComplete),
+        escapeCsv(pendingDocs),
+      ].join(',');
+    });
+
+    return [headers.map(escapeCsv).join(','), ...rows].join('\n');
   }
 }

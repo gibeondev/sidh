@@ -6,8 +6,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ApplicationStatus } from '@prisma/client';
 import { ApplicationsService } from './applications.service';
 import { DecisionNoteDto } from './dto/decision.dto';
@@ -26,6 +28,30 @@ export class AdminApplicationsController {
   @Get('filter-options')
   async filterOptions() {
     return this.applicationsService.adminListFilterOptions();
+  }
+
+  @Get('export')
+  async exportCsv(
+    @Res() res: Response,
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('program') program?: string,
+    @Query('country') country?: string,
+  ) {
+    const statusEnum = status && this.isApplicationStatus(status) ? (status as ApplicationStatus) : undefined;
+    const csv = await this.applicationsService.adminExportFullRegistrations({
+      status: statusEnum,
+      search,
+      program: program || undefined,
+      country: country || undefined,
+    });
+    
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const filename = `full-registrations-${timestamp}.csv`;
+    
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send('\uFEFF' + csv); // BOM for Excel UTF-8 compatibility
   }
 
   @Get()

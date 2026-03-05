@@ -3,6 +3,10 @@
 export interface ReviewConfirmStepProps {
   confirmed: boolean;
   onConfirmedChange: (checked: boolean) => void;
+  /** Selected visa document filename (from step 3) for display */
+  visaDocumentFileName?: string;
+  /** Callback to open the visa file (when available) */
+  onOpenVisaFile?: () => void;
 }
 
 /**
@@ -13,7 +17,13 @@ export interface ReviewConfirmStepProps {
 export function ReviewConfirmStep({
   confirmed,
   onConfirmedChange,
+  visaDocumentFileName,
+  onOpenVisaFile,
 }: ReviewConfirmStepProps) {
+  const hasFile = visaDocumentFileName?.trim();
+  const visaLabel = hasFile
+    ? `File visa/izin tinggal: ${visaDocumentFileName}`
+    : 'File visa/izin tinggal: Tidak ada file yang dipilih';
   return (
     <section aria-labelledby="step4-heading" className="space-y-8">
       <h2
@@ -30,7 +40,19 @@ export function ReviewConfirmStep({
           <li>Data Calon Siswa</li>
           <li>Data Orang Tua/Wali</li>
           <li>Data Pilihan Program/Kelas</li>
-          <li>File visa/izin tinggal</li>
+          <li>
+            {hasFile && onOpenVisaFile ? (
+              <button
+                type="button"
+                onClick={onOpenVisaFile}
+                className="text-left text-blue-600 hover:underline cursor-pointer"
+              >
+                {visaLabel}
+              </button>
+            ) : (
+              visaLabel
+            )}
+          </li>
         </ul>
       </div>
 

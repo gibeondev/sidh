@@ -12,6 +12,7 @@ import {
 import { AdminCardSection, AdminPageHeader, RejectDialog, DocumentViewerDialog } from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { getDownloadUrl } from '@/lib/api/documents';
 
 function formatDateShort(iso: string): string {
   try {
@@ -151,6 +152,8 @@ function FormUploadRow({
   onApprove,
   onView,
   disabled,
+  emptyPlaceholder,
+  showReviewButtons = true,
 }: {
   label: string;
   fileName: string | null;
@@ -161,6 +164,10 @@ function FormUploadRow({
   onApprove?: () => void;
   onView?: () => void;
   disabled?: boolean;
+  /** When no file: show this instead of "–" (e.g. "Tidak diunggah (opsional)") */
+  emptyPlaceholder?: string;
+  /** Show Tolak/Setujui document review buttons (default true; set false for pre-registration) */
+  showReviewButtons?: boolean;
 }) {
   return (
     <div
@@ -174,32 +181,23 @@ function FormUploadRow({
       <div className="flex items-center gap-3 flex-wrap">
         {fileName ? (
           <>
-            <a
-              href="#"
-              className="text-sm text-blue-600 hover:underline"
-              onClick={(e) => e.preventDefault()}
-            >
-              {fileName}
-            </a>
-            {onView && documentUrl && (
-              <button
+            <span className="text-sm text-gray-900">{fileName}</span>
+            {onView && (
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={onView}
-                className="inline-flex h-6 w-6 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                aria-label="Lihat dokumen"
-                title="Lihat dokumen"
+                className="h-8"
               >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </button>
+                Lihat
+              </Button>
             )}
           </>
         ) : (
-          <span className="text-sm text-gray-500">–</span>
+          <span className="text-sm text-gray-500">{emptyPlaceholder ?? '–'}</span>
         )}
-        {fileName && (
+        {fileName && showReviewButtons && (
           <span className="flex items-center gap-1">
             <Button
               type="button"
@@ -321,6 +319,7 @@ export default function AdminApplicationDetailPage({
   const preRegStatus = pr.status ?? data.status;
   const isApproved = preRegStatus === 'APPROVED';
   const canDecide = preRegStatus !== 'APPROVED' && preRegStatus !== 'REJECTED';
+  const visaDoc = data.documents?.find((d) => d.documentType === 'PARENT_RESIDENCE_PERMIT');
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 bg-gray-100 px-4 py-8">
@@ -458,14 +457,23 @@ export default function AdminApplicationDetailPage({
                 <FormReadOnlyRow label="Informasi memiliki NISN atau tidak" value={pr.nisn ?? '–'} />
                 <FormUploadRow
                   label="Upload scan visa/izin tinggal (jika tersedia)"
-                  fileName={null}
-                  documentUrl={null}
-                  mimeType={null}
-                  required
+                  fileName={visaDoc?.fileName ?? null}
+                  required={false}
                   disabled
-                  onView={() => {
-                    // Placeholder - will be implemented when documents API is available
-                  }}
+                  onView={
+                    visaDoc
+                      ? async () => {
+                          try {
+                            const { url, fileName, mimeType } = await getDownloadUrl(visaDoc.id);
+                            setViewingDocument({ url, fileName, mimeType });
+                          } catch {
+                            // Error could be shown via toast
+                          }
+                        }
+                      : undefined
+                  }
+                  emptyPlaceholder="Tidak diunggah (opsional)"
+                  showReviewButtons={false}
                 />
               </div>
             </AdminCardSection>

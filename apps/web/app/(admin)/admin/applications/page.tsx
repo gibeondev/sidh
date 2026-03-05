@@ -57,7 +57,7 @@ function SortHeader({
     <button
       type="button"
       onClick={() => onSort(sortKey)}
-      className="inline-flex items-center gap-0.5 font-semibold uppercase tracking-wider text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
+      className="inline-flex items-center gap-0.5 font-extrabold uppercase tracking-wider text-gray-800 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
     >
       {label}
       <span className="inline-flex flex-col text-gray-400" aria-hidden>
@@ -289,7 +289,7 @@ export default function AdminApplicationsPage() {
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
-          <form onSubmit={handleSearchSubmit} className="relative flex flex-1 min-w-[240px] max-w-md">
+          <form onSubmit={handleSearchSubmit} className="relative flex w-[240px]">
             <span className="sr-only">Cari Nama / No.</span>
             <Input
               type="search"
@@ -319,19 +319,19 @@ export default function AdminApplicationsPage() {
           </Button>
           <Select
             options={STATUS_OPTIONS}
-            className="w-[150px]"
+            className="!w-auto"
             value={status}
             onChange={(e) => { setStatus(e.target.value as StatusFilterValue); setPage(1); }}
           />
           <Select
             options={[{ value: '', label: 'Semua Program' }, ...filterOptions.programs.map((p) => ({ value: p, label: p }))]}
-            className="w-[130px]"
+            className="!w-auto"
             value={program}
             onChange={(e) => { setProgram(e.target.value); setPage(1); }}
           />
           <Select
             options={[{ value: '', label: 'Semua Negara' }, ...filterOptions.countries.map((c) => ({ value: c, label: c }))]}
-            className="w-[130px]"
+            className="!w-auto"
             value={country}
             onChange={(e) => { setCountry(e.target.value); setPage(1); }}
           />
@@ -357,7 +357,7 @@ export default function AdminApplicationsPage() {
                 <TableHead>
                   <SortHeader label="Tanggal Submit" sortKey="submittedAt" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} />
                 </TableHead>
-                <TableHead>
+                <TableHead className="w-[130px]">
                   <SortHeader label="Status" sortKey="status" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} />
                 </TableHead>
               </TableRow>
@@ -522,7 +522,9 @@ function ApplicationRow({
       <TableCell>{pr?.assignmentCountry ?? '–'}</TableCell>
       <TableCell>{formatDate(row.submittedAt ?? row.createdAt)}</TableCell>
       <TableCell>
-        <StatusBadge status={pr?.status ?? row.status} />
+        <span className="inline-block w-[130px]">
+          <StatusBadge status={(pr?.status ?? row.status) as ApplicationStatus} />
+        </span>
       </TableCell>
     </TableRow>
   );

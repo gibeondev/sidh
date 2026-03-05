@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup } from '@/components/ui/radio-group';
 import { FormRow } from './FormRow';
+import { useVisaFile } from './VisaFileContext';
 
 export interface StudentIdentityData {
   programChoice: string;
@@ -53,7 +55,20 @@ const inputErrorClass = '!border-red-500';
  * Field names aligned with PreRegisterRequest.
  */
 export function StudentIdentityStep({ data, onChange, fieldErrors }: StudentIdentityStepProps) {
+  const { setValue } = useFormContext();
+  const { file: contextFile, setFile: setContextFile } = useVisaFile();
   const [selectedFileName, setSelectedFileName] = useState<string>('Tidak ada file yang dipilih');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileToShow = selectedFile ?? contextFile;
+  const displayName = selectedFileName !== 'Tidak ada file yang dipilih' ? selectedFileName : (contextFile?.name ?? 'Tidak ada file yang dipilih');
+
+  const handleOpenFile = () => {
+    const file = fileToShow;
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const w = window.open(url, '_blank', 'noopener,noreferrer');
+    setTimeout(() => URL.revokeObjectURL(url), w ? 1000 : 0);
+  };
 
   return (
     <section aria-labelledby="student-identity-heading" className="space-y-6">
@@ -205,12 +220,29 @@ export function StudentIdentityStep({ data, onChange, fieldErrors }: StudentIden
                   className="flex-1"
                   aria-label="Upload scan visa/izin tinggal"
                   onChange={(e) => {
-                    // File selection handled here (UI only, no API integration)
                     const file = e.target.files?.[0];
-                    setSelectedFileName(file ? file.name : 'Tidak ada file yang dipilih');
+                    const name = file ? file.name : '';
+                    setSelectedFileName(name || 'Tidak ada file yang dipilih');
+                    setSelectedFile(file ?? null);
+                    setContextFile(file ?? null);
+                    setValue('visaDocumentFileName', name, { shouldValidate: false });
                   }}
                 />
-                <span className="text-sm text-gray-500 whitespace-nowrap">{selectedFileName}</span>
+                {fileToShow ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleOpenFile();
+                    }}
+                    className="text-sm text-blue-600 hover:underline whitespace-nowrap cursor-pointer flex-shrink-0"
+                  >
+                    {displayName}
+                  </button>
+                ) : (
+                  <span className="text-sm text-gray-500 whitespace-nowrap">{displayName}</span>
+                )}
               </div>
               <p className="text-xs text-gray-500">
                 (Ukuran file maksimum: 1MB. Jenis file yang didukung: PDF/JPG/PNG)

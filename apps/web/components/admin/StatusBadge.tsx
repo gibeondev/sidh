@@ -61,7 +61,7 @@ export function StatusBadge({ status }: { status: ApplicationStatus }) {
     variant === 'disetujui' ? <DisetujuiIcon /> :
     variant === 'ditolak' ? <DitolakIcon /> : null;
   return (
-    <Badge variant={variant}>
+    <Badge variant={variant} className="min-w-[130px] w-[130px] justify-center">
       {icon}
       {label}
     </Badge>

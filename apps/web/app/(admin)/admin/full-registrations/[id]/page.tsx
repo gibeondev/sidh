@@ -9,7 +9,7 @@ import {
   type ApplicationDetail,
   type ApplicationStatus,
 } from '@/lib/api/admin-applications';
-import { AdminCardSection, AdminPageHeader, StatusBadge, RejectDialog, DocumentViewerDialog } from '@/components/admin';
+import { AdminCardSection, AdminPageHeader, StatusBadge, RejectDialog } from '@/components/admin';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -70,6 +70,17 @@ function relationshipLabel(r: string | undefined): string {
   return map[r] ?? r;
 }
 
+const COUNTRY_LABELS: Record<string, string> = {
+  NL: 'Netherlands',
+  ID: 'Indonesia',
+  DE: 'Germany',
+  BE: 'Belgium',
+  FR: 'France',
+  UK: 'United Kingdom',
+  US: 'United States',
+  OTHER: 'Other',
+};
+
 const LABEL_COL_WIDTH = 280;
 
 const READONLY_VALUE_CLASS =
@@ -112,11 +123,6 @@ export default function AdminFullRegistrationDetailPage({
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [viewingDocument, setViewingDocument] = useState<{
-    url: string;
-    fileName: string;
-    mimeType?: string;
-  } | null>(null);
 
   const fetchDetail = useCallback(async (applicationId: string) => {
     setLoading(true);
@@ -357,6 +363,34 @@ export default function AdminFullRegistrationDetailPage({
               </div>
             </AdminCardSection>
 
+            <AdminCardSection title="Alamat & Domisili" className="mb-10">
+              <div className="space-y-0">
+                <FormReadOnlyRow
+                  label="Negara tempat dinas orang tua/ studi orang tua"
+                  value={rs.parentServiceCountry ? (COUNTRY_LABELS[rs.parentServiceCountry] ?? rs.parentServiceCountry) : undefined}
+                  required
+                />
+                <FormReadOnlyRow
+                  label="Rencana periode domisili"
+                  value={
+                    rs.domicilePeriodStart && rs.domicilePeriodEnd
+                      ? `${formatDateShort(rs.domicilePeriodStart)} – ${formatDateShort(rs.domicilePeriodEnd)}`
+                      : rs.domicilePeriodStart
+                        ? formatDateShort(rs.domicilePeriodStart)
+                        : rs.domicilePeriodEnd
+                          ? formatDateShort(rs.domicilePeriodEnd)
+                          : undefined
+                  }
+                  required
+                />
+                <FormReadOnlyRow
+                  label="Informasi visa/ijin tinggal orang tua yang digunakan"
+                  value={rs.parentVisaType ?? undefined}
+                  required
+                />
+              </div>
+            </AdminCardSection>
+
             <AdminCardSection title="Kebutuhan Khusus" className="mb-10">
               <div className="space-y-0">
                 <FormReadOnlyRow
@@ -438,21 +472,38 @@ export default function AdminFullRegistrationDetailPage({
                         {doc.reviewNote ? ` — ${doc.reviewNote}` : ''}
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const { url, fileName, mimeType } = await getDownloadUrl(doc.id);
-                          setViewingDocument({ url, fileName, mimeType });
-                        } catch {
-                          // Error could be shown via toast
-                        }
-                      }}
-                    >
-                      Lihat
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const { url } = await getDownloadUrl(doc.id);
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          } catch {
+                            // Error could be shown via toast
+                          }
+                        }}
+                      >
+                        Lihat
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const { url } = await getDownloadUrl(doc.id);
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          } catch {
+                            // Error could be shown via toast
+                          }
+                        }}
+                      >
+                        Unduh
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -482,15 +533,6 @@ export default function AdminFullRegistrationDetailPage({
         applicationId={id}
       />
 
-      {viewingDocument && (
-        <DocumentViewerDialog
-          open={!!viewingDocument}
-          onClose={() => setViewingDocument(null)}
-          documentUrl={viewingDocument.url}
-          fileName={viewingDocument.fileName}
-          mimeType={viewingDocument.mimeType}
-        />
-      )}
     </div>
   );
 }

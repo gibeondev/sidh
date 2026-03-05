@@ -35,3 +35,36 @@ export async function closeRegistrationPeriod(id: string): Promise<RegistrationP
     credentials,
   });
 }
+
+export interface CreateRegistrationPeriodPayload {
+  name: string;
+  startAt: string; // ISO date string
+  endAt: string;   // ISO date string
+}
+
+export interface UpdateRegistrationPeriodPayload {
+  name?: string;
+  startAt?: string;
+  endAt?: string;
+}
+
+export async function createRegistrationPeriod(
+  payload: CreateRegistrationPeriodPayload
+): Promise<RegistrationPeriodItem> {
+  return request<RegistrationPeriodItem>('/admin/registration-periods', {
+    method: 'POST',
+    body: payload,
+    credentials,
+  });
+}
+
+export async function updateRegistrationPeriod(
+  id: string,
+  payload: UpdateRegistrationPeriodPayload
+): Promise<RegistrationPeriodItem> {
+  return request<RegistrationPeriodItem>(`/admin/registration-periods/${id}`, {
+    method: 'PATCH',
+    body: payload,
+    credentials,
+  });
+}

@@ -66,6 +66,10 @@ export interface RegistrationSubmissionListItem {
   domicileRegion?: string;
   phoneCountryCode?: string;
   phoneNumber?: string;
+  parentServiceCountry?: string | null;
+  domicilePeriodStart?: string | null;
+  domicilePeriodEnd?: string | null;
+  parentVisaType?: string | null;
   [key: string]: unknown;
 }
 
@@ -244,6 +248,52 @@ export async function updateApplicationStatus(
     body: { status, decisionReason },
     credentials,
   });
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+/**
+ * Export full registrations as CSV file download.
+ * Triggers browser download of the CSV file.
+ */
+export async function exportFullRegistrationsCsv(params: {
+  status?: ApplicationStatus;
+  search?: string;
+  program?: string;
+  country?: string;
+}): Promise<void> {
+  const searchParams = new URLSearchParams();
+  if (params.status) searchParams.set('status', params.status);
+  if (params.search) searchParams.set('search', params.search);
+  if (params.program) searchParams.set('program', params.program);
+  if (params.country) searchParams.set('country', params.country);
+  const q = searchParams.toString();
+  
+  const response = await fetch(`${API_URL}/admin/applications/export${q ? `?${q}` : ''}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    throw new ApiError(response.status, 'Gagal mengekspor data');
+  }
+  
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get('Content-Disposition');
+  let filename = 'full-registrations.csv';
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename="?([^"]+)"?/);
+    if (match) filename = match[1];
+  }
+  
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
 }
 
 export { ApiError };

@@ -25,6 +25,8 @@ export interface PreRegisterPayload {
   studentBirthDate: string;
   lastEducationLocation: string;
   nisn?: string;
+  /** UI only: selected visa document filename for display on review step (not sent to API) */
+  visaDocumentFileName?: string;
 }
 
 /** Response shape from backend */
@@ -40,7 +42,8 @@ export interface PreRegisterResult {
 export async function submitPreRegister(
   payload: PreRegisterPayload
 ): Promise<PreRegisterResult> {
-  const body = { ...payload };
+  const { visaDocumentFileName, ...rest } = payload;
+  const body = { ...rest };
   if (body.nisn === '' || body.nisn === undefined) {
     delete body.nisn;
   }

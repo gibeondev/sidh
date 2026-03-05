@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { PreRegisterPayload } from '@/lib/api/preRegistration';
@@ -12,6 +12,7 @@ import {
   StepActions,
   ReviewConfirmStep,
 } from '@/components/pre-register';
+import { useVisaFile } from '@/components/pre-register/VisaFileContext';
 import { validatePreRegisterForm, type FieldError } from '@/lib/pre-register-validation';
 
 const STEP = 4 as const;
@@ -27,6 +28,7 @@ const MESSAGE_FIELD_REGEX = /(\w+):/;
 export default function PreRegisterStep4Page() {
   const router = useRouter();
   const { getValues, setError, clearErrors } = useFormContext<PreRegisterPayload>();
+  const { file: visaFile } = useVisaFile();
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -74,6 +76,13 @@ export default function PreRegisterStep4Page() {
     }
   };
 
+  const handleOpenVisaFile = useCallback(() => {
+    if (!visaFile) return;
+    const url = URL.createObjectURL(visaFile);
+    const w = window.open(url, '_blank', 'noopener,noreferrer');
+    setTimeout(() => URL.revokeObjectURL(url), w ? 1000 : 0);
+  }, [visaFile]);
+
   return (
     <main className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
@@ -101,6 +110,8 @@ export default function PreRegisterStep4Page() {
           <ReviewConfirmStep
             confirmed={confirmed}
             onConfirmedChange={setConfirmed}
+            visaDocumentFileName={getValues('visaDocumentFileName')}
+            onOpenVisaFile={visaFile ? handleOpenVisaFile : undefined}
           />
 
           <form

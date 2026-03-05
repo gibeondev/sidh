@@ -2,6 +2,7 @@
 
 import { FormProvider, useForm } from 'react-hook-form';
 import type { PreRegisterPayload } from '@/lib/api/preRegistration';
+import { VisaFileProvider } from '@/components/pre-register/VisaFileContext';
 
 const defaultValues: PreRegisterPayload = {
   applicantEmail: '',
@@ -22,6 +23,7 @@ const defaultValues: PreRegisterPayload = {
   studentBirthDate: '',
   lastEducationLocation: '',
   nisn: '',
+  visaDocumentFileName: '',
 };
 
 /**
@@ -38,5 +40,9 @@ export default function PreRegisterLayout({
     mode: 'onTouched',
   });
 
-  return <FormProvider {...methods}>{children}</FormProvider>;
+  return (
+    <VisaFileProvider>
+      <FormProvider {...methods}>{children}</FormProvider>
+    </VisaFileProvider>
+  );
 }
