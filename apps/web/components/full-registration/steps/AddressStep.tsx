@@ -5,12 +5,13 @@ import { FormRow } from '@/components/pre-register';
 import type { FullRegistrationPayload } from '@/lib/api/fullRegistration';
 
 export interface AddressStepProps {
-  data: Pick<FullRegistrationPayload, 'addressLine' | 'postalCode'>;
+  data: Pick<FullRegistrationPayload, 'addressIndonesia' | 'domicileRegion'>;
   onChange: (field: keyof FullRegistrationPayload, value: string) => void;
 }
 
 /**
  * Step 3 — Alamat & Domisili. Per Figma Full Registration.
+ * Maps to addressIndonesia (alamat lengkap) and domicileRegion (wilayah/kode pos).
  */
 export function AddressStep({ data, onChange }: AddressStepProps) {
   return (
@@ -24,19 +25,19 @@ export function AddressStep({ data, onChange }: AddressStepProps) {
       <div className="space-y-5">
         <FormRow label="Alamat lengkap" required>
           <Input
-            id="addressLine"
-            value={data.addressLine}
-            onChange={(e) => onChange('addressLine', e.target.value)}
+            id="addressIndonesia"
+            value={data.addressIndonesia ?? ''}
+            onChange={(e) => onChange('addressIndonesia', e.target.value)}
             placeholder="Jalan, nomor, RT/RW, kelurahan, kecamatan"
             className="w-full"
           />
         </FormRow>
-        <FormRow label="Kode pos" required>
+        <FormRow label="Wilayah domisili / Kode pos" required>
           <Input
-            id="postalCode"
-            value={data.postalCode}
-            onChange={(e) => onChange('postalCode', e.target.value)}
-            placeholder="Kode pos"
+            id="domicileRegion"
+            value={data.domicileRegion ?? ''}
+            onChange={(e) => onChange('domicileRegion', e.target.value)}
+            placeholder="Wilayah domisili atau kode pos"
             className="w-full"
           />
         </FormRow>

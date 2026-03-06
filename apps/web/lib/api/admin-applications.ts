@@ -275,7 +275,7 @@ export async function exportFullRegistrationsCsv(params: {
   });
   
   if (!response.ok) {
-    throw new ApiError(response.status, 'Gagal mengekspor data');
+    throw new ApiError('Gagal mengekspor data', response.status);
   }
   
   const blob = await response.blob();
