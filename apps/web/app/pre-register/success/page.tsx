@@ -1,13 +1,14 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 /**
- * Pre-registration success page (after step-4 submit).
- * Matches Figma: confirmation graphic, thank-you message, button to start/login page.
+ * Inner content that uses useSearchParams - must be wrapped in Suspense
+ * to avoid prerender errors during static export (search params are client-only).
  */
-export default function PreRegisterSuccessPage() {
+function PreRegisterSuccessContent() {
   const searchParams = useSearchParams();
   const applicationNo = searchParams.get('applicationNo') ?? '';
 
@@ -67,5 +68,27 @@ export default function PreRegisterSuccessPage() {
         </Link>
       </div>
     </main>
+  );
+}
+
+/**
+ * Pre-registration success page (after step-4 submit).
+ * Matches Figma: confirmation graphic, thank-you message, button to start/login page.
+ * Wrapped in Suspense so useSearchParams does not break static prerender.
+ */
+export default function PreRegisterSuccessPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-white flex flex-col items-center justify-center p-6 md:p-12">
+        <div className="mx-auto max-w-md text-center">
+          <div className="h-32 mb-8" aria-hidden />
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Terima kasih telah mendaftar.</h1>
+          <p className="text-gray-700 mb-6">Memuat...</p>
+          <div className="h-12 w-48 bg-gray-200 rounded-lg animate-pulse mx-auto" />
+        </div>
+      </main>
+    }>
+      <PreRegisterSuccessContent />
+    </Suspense>
   );
 }
