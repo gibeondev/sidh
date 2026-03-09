@@ -10,7 +10,10 @@
     "type-check": "pnpm --recursive --filter './apps/*' type-check",
     "prisma:generate": "pnpm --filter './packages/prisma' prisma:generate",
     "prisma:migrate": "pnpm --filter './packages/prisma' prisma:migrate",
-    "prisma:studio": "pnpm --filter './packages/prisma' prisma:studio"
+    "prisma:studio": "pnpm --filter './packages/prisma' prisma:studio",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @sidh/prisma exec prisma migrate deploy",
+    "db:seed": "dotenv -e .env -- pnpm --filter @sidh/prisma exec prisma db seed",
+    "db:studio": "dotenv -e .env -- pnpm --filter @sidh/prisma exec prisma studio"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
