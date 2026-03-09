@@ -14,7 +14,7 @@ import { join } from 'path';
   imports: [
     ConfigModule.forRoot({ 
       isGlobal: true,
-      envFilePath: [join(__dirname, '..', '.env'), '.env'],
+      envFilePath: join(process.cwd(), '.env'),
     }),
     PrismaModule,
     AuthModule,
