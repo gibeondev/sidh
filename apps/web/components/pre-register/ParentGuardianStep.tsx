@@ -66,7 +66,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
             placeholder="Email pendaftar"
             value={data.applicantEmail}
             onChange={(e) => onChange('applicantEmail', e.target.value)}
-            className={fieldErrors?.applicantEmail ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.applicantEmail ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -77,7 +77,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
             placeholder="Jenis penugasan/alasan tinggal di luar negeri"
             value={data.reasonLivingAbroad}
             onChange={(e) => onChange('reasonLivingAbroad', e.target.value)}
-            className={fieldErrors?.reasonLivingAbroad ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.reasonLivingAbroad ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -88,7 +88,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
             placeholder="Alasan mendaftar ke SIDH"
             value={data.reasonToApply}
             onChange={(e) => onChange('reasonToApply', e.target.value)}
-            className={fieldErrors?.reasonToApply ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.reasonToApply ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -120,7 +120,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
             placeholder="Nama orang tua pendaftar"
             value={data.applicantName}
             onChange={(e) => onChange('applicantName', e.target.value)}
-            className={fieldErrors?.applicantName ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.applicantName ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -132,7 +132,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
             placeholder="Alamat domisili"
             value={data.assignmentCity}
             onChange={(e) => onChange('assignmentCity', e.target.value)}
-            className={fieldErrors?.assignmentCity ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.assignmentCity ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -144,7 +144,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
             value={data.assignmentCountry}
             onChange={(e) => onChange('assignmentCountry', e.currentTarget.value)}
             aria-label="Negara domisili"
-            className={fieldErrors?.assignmentCountry ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.assignmentCountry ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -163,7 +163,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
                   value={data.domicileStartDate}
                   onChange={(e) => onChange('domicileStartDate', e.target.value)}
                   aria-label="Mulai"
-                  className={fieldErrors?.domicileStartDate ? inputErrorClass : ''}
+                  className={`placeholder:!text-gray-400 ${fieldErrors?.domicileStartDate ? inputErrorClass : ''}`}
                 />
               </div>
               <span className="text-gray-400" aria-hidden="true">–</span>
@@ -174,7 +174,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
                   value={data.domicileEndDate}
                   onChange={(e) => onChange('domicileEndDate', e.target.value)}
                   aria-label="Akhir"
-                  className={fieldErrors?.domicileEndDate ? inputErrorClass : ''}
+                  className={`placeholder:!text-gray-400 ${fieldErrors?.domicileEndDate ? inputErrorClass : ''}`}
                 />
               </div>
             </div>
@@ -193,7 +193,7 @@ export function ParentGuardianStep({ data, onChange, fieldErrors }: ParentGuardi
             value={data.permitExpiryDate}
             onChange={(e) => onChange('permitExpiryDate', e.target.value)}
             aria-label="Tanggal masa berlaku visa/izin tinggal"
-            className={fieldErrors?.permitExpiryDate ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.permitExpiryDate ? inputErrorClass : ''}`}
           />
         </FormRow>
       </div>

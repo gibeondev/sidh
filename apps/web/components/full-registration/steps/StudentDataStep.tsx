@@ -131,7 +131,7 @@ export function StudentDataStep({ data, onChange, readOnly = false }: StudentDat
             value={data.studentBirthDate}
             onChange={(e) => onChange('studentBirthDate', e.target.value)}
             placeholder="TTL (tanggal lahir)"
-            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400 !text-gray-400"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
           />
         </FormRow>
 
@@ -309,29 +309,17 @@ export function StudentDataStep({ data, onChange, readOnly = false }: StudentDat
           />
         </FormRow>
 
-        <div className="grid grid-cols-[240px_1fr] gap-4 items-start">
-          <label className="pt-2 text-sm font-medium text-gray-900">
-            Nomor telepon rumah
-            <span className="text-red-500 ml-0.5" aria-hidden="true">*</span>
-          </label>
-          <div className="flex-1 min-w-0 flex gap-2">
-            <Input
-              id="phoneCountryCode"
-              value={data.phoneCountryCode}
-              onChange={(e) => onChange('phoneCountryCode', e.target.value)}
-              placeholder="+62"
-              className="w-20 !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
-            />
-            <Input
-              id="phoneNumber"
-              value={data.phoneNumber}
-              onChange={(e) => handleChange('phoneNumber', e.target.value)}
-              disabled={disabled}
-              placeholder="Nomor telepon"
-              className="flex-1 !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
-            />
-          </div>
-        </div>
+        <FormRow label="Nomor telepon rumah" required>
+          <Input
+            id="phoneNumber"
+            type="tel"
+            value={data.phoneNumber}
+            onChange={(e) => handleChange('phoneNumber', e.target.value)}
+            disabled={disabled}
+            placeholder="+62 8123456789"
+            className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 text-gray-900 placeholder:!text-gray-400"
+          />
+        </FormRow>
       </div>
     </section>
   );

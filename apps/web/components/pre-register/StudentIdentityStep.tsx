@@ -127,7 +127,7 @@ export function StudentIdentityStep({ data, onChange, fieldErrors }: StudentIden
             placeholder="Kelas"
             value={data.gradeApplied}
             onChange={(e) => onChange('gradeApplied', e.target.value)}
-            className={fieldErrors?.gradeApplied ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.gradeApplied ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -139,7 +139,7 @@ export function StudentIdentityStep({ data, onChange, fieldErrors }: StudentIden
             placeholder="Nama calon siswa"
             value={data.studentName}
             onChange={(e) => onChange('studentName', e.target.value)}
-            className={fieldErrors?.studentName ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.studentName ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -190,7 +190,7 @@ export function StudentIdentityStep({ data, onChange, fieldErrors }: StudentIden
             value={data.studentBirthDate}
             onChange={(e) => onChange('studentBirthDate', e.target.value)}
             aria-label="Tanggal lahir"
-            className={fieldErrors?.studentBirthDate ? inputErrorClass : ''}
+            className={`placeholder:!text-gray-400 ${fieldErrors?.studentBirthDate ? inputErrorClass : ''}`}
           />
         </FormRow>
 
@@ -201,6 +201,7 @@ export function StudentIdentityStep({ data, onChange, fieldErrors }: StudentIden
             placeholder="Informasi memiliki NISN atau tidak"
             value={data.nisn || ''}
             onChange={(e) => onChange('nisn', e.target.value)}
+            className="placeholder:!text-gray-400"
           />
         </FormRow>
 

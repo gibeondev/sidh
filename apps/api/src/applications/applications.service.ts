@@ -409,7 +409,10 @@ export class ApplicationsService {
         });
         await tx.application.update({
           where: { id },
-          data: { parentUserId: parentUser.id },
+          data: {
+            parentUserId: parentUser.id,
+            status: ApplicationStatus.DRAFT,
+          },
         });
       });
     } else {
