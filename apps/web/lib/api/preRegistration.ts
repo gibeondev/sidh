@@ -53,4 +53,40 @@ export async function submitPreRegister(
   });
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+/**
+ * Upload visa/izin tinggal document for pre-registration (public, no auth).
+ * Must be called within 30 minutes of pre-register submit.
+ */
+export async function uploadPreRegisterVisaDocument(
+  applicationId: string,
+  file: File
+): Promise<{ id: string; fileName: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(
+    `${BASE_URL}/public/applications/${applicationId}/documents/visa`,
+    {
+      method: 'POST',
+      body: formData,
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const msg =
+      typeof data.message === 'string'
+        ? data.message
+        : Array.isArray(data.message)
+          ? data.message.join(' ')
+          : 'Gagal mengunggah dokumen visa. Silakan coba lagi.';
+    throw new ApiError(msg, response.status, data);
+  }
+
+  return data;
+}
+
 export { ApiError };

@@ -363,9 +363,14 @@ export function buildDraftPayload(form: Partial<FullRegistrationPayload>): Parti
   if (form.description !== undefined) set('description', form.description);
   if (form.additionalInfo !== undefined) set('additionalInfo', form.additionalInfo);
 
-  const hasFather = str(form.fatherFullName) || str(form.fatherEmail);
-  const hasMother = str(form.motherFullName) || str(form.motherEmail);
-  const hasGuardian = str(form.guardianFullName) || str(form.guardianEmail);
+  // Only include contacts that have valid email (API requires valid email per ContactDto).
+  // Omitting partially-filled contacts prevents "contacts.0.email must be an email" when
+  // navigating between steps (e.g. step 1 → step 2) with incomplete contact data.
+  const EMAIL_RE = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  const hasValidEmail = (e: string | undefined) => typeof e === 'string' && e.trim() !== '' && EMAIL_RE.test(e);
+  const hasFather = str(form.fatherFullName) && hasValidEmail(form.fatherEmail);
+  const hasMother = str(form.motherFullName) && hasValidEmail(form.motherEmail);
+  const hasGuardian = str(form.guardianFullName) && hasValidEmail(form.guardianEmail);
   if (hasFather || hasMother || hasGuardian) {
     const contacts: NonNullable<FullRegistrationPayload['contacts']> = [];
     if (hasFather) {

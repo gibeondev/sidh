@@ -16,6 +16,8 @@ import { UploadDocumentDto } from './dto/upload-document.dto';
 import { ReviewDocumentDto } from './dto/review-document.dto';
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+const PRE_REGISTER_VISA_UPLOAD_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+const SYSTEM_USER_EMAIL = 'pre-register-upload@system.local';
 const ALLOWED_MIME_TYPES = [
   'application/pdf',
   'image/jpeg',
@@ -323,6 +325,108 @@ export class DocumentsService {
       });
 
       return updatedDocument;
+    });
+  }
+
+  /**
+   * Upload visa/izin tinggal document for pre-registration (public, no auth).
+   * Called right after pre-register submit. Application must exist, have preRegistration,
+   * and be created within the upload window to prevent abuse.
+   */
+  async uploadVisaDocumentForPreRegistration(
+    applicationId: string,
+    file: Express.Multer.File,
+  ) {
+    this.validateFile(file);
+
+    const application = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: { preRegistration: true },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (!application.preRegistration) {
+      throw new BadRequestException('Application does not have pre-registration data');
+    }
+
+    const now = Date.now();
+    const createdAt = application.createdAt.getTime();
+    if (now - createdAt > PRE_REGISTER_VISA_UPLOAD_WINDOW_MS) {
+      throw new BadRequestException(
+        'Visa document upload window has expired. Please contact support if you need to add a document.',
+      );
+    }
+
+    const systemUser = await this.prisma.user.findUnique({
+      where: { email: SYSTEM_USER_EMAIL },
+    });
+    if (!systemUser) {
+      throw new BadRequestException('System configuration error. Please try again later.');
+    }
+
+    const documentType = DocumentType.PARENT_RESIDENCE_PERMIT;
+    const timestamp = Date.now();
+    const sanitizedFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const s3Key = `applications/${applicationId}/documents/${documentType}/${timestamp}-${sanitizedFilename}`;
+
+    const existingDocument = await this.prisma.document.findUnique({
+      where: {
+        applicationId_documentType: {
+          applicationId,
+          documentType,
+        },
+      },
+    });
+
+    try {
+      await this.s3Service.uploadFile(s3Key, file.buffer, file.mimetype);
+    } catch (error: any) {
+      throw new BadRequestException(
+        `Gagal mengunggah dokumen ke penyimpanan: ${error.message || error.toString()}`,
+      );
+    }
+
+    if (existingDocument) {
+      try {
+        await this.s3Service.deleteFile(existingDocument.s3Key);
+      } catch (error) {
+        console.error('Failed to delete old S3 file:', error);
+      }
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      if (existingDocument) {
+        return tx.document.update({
+          where: { id: existingDocument.id },
+          data: {
+            s3Key,
+            fileName: file.originalname,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+            uploadedAt: new Date(),
+            uploadedBy: systemUser.id,
+            status: DocumentStatus.OPEN,
+            reviewNote: null,
+            reviewedAt: null,
+            reviewedBy: null,
+          },
+        });
+      }
+      return tx.document.create({
+        data: {
+          applicationId,
+          documentType,
+          status: DocumentStatus.OPEN,
+          s3Key,
+          fileName: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          uploadedBy: systemUser.id,
+        },
+      });
     });
   }
 

@@ -82,6 +82,7 @@ export default function WizardStep3Page() {
           )}
 
           <AddressStep3
+            readOnly={readOnly}
             data={{
               parentServiceCountry: form.parentServiceCountry ?? '',
               domicilePeriodStart: form.domicilePeriodStart ?? '',

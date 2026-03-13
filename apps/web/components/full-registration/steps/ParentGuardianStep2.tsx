@@ -37,6 +37,7 @@ export interface ParentGuardianStep2Props {
     | 'guardianEmail'
   >;
   onChange: (field: keyof FullRegistrationPayload, value: string) => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -44,7 +45,9 @@ export interface ParentGuardianStep2Props {
  * Uses collapsible sections: Data Ayah, Data Ibu, Data Wali.
  * Matches Step 1 styling and layout patterns.
  */
-export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props) {
+export function ParentGuardianStep2({ data, onChange, readOnly = false }: ParentGuardianStep2Props) {
+  const handleChange = readOnly ? () => {} : onChange;
+  const disabled = readOnly;
   return (
     <section aria-labelledby="data-orang-tua-heading" className="space-y-5">
       <h2
@@ -61,7 +64,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="fatherFullName"
               value={data.fatherFullName ?? ''}
-              onChange={(e) => onChange('fatherFullName', e.target.value)}
+              onChange={(e) => handleChange('fatherFullName', e.target.value)}
+              disabled={disabled}
               placeholder="Nama lengkap"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -71,7 +75,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="fatherBirthPlace"
               value={data.fatherBirthPlace ?? ''}
-              onChange={(e) => onChange('fatherBirthPlace', e.target.value)}
+              onChange={(e) => handleChange('fatherBirthPlace', e.target.value)}
+              disabled={disabled}
               placeholder="Tempat lahir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -82,7 +87,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
               id="fatherBirthDate"
               type="date"
               value={data.fatherBirthDate ?? ''}
-              onChange={(e) => onChange('fatherBirthDate', e.target.value)}
+              onChange={(e) => handleChange('fatherBirthDate', e.target.value)}
+              disabled={disabled}
               placeholder="Tanggal lahir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400 !text-gray-400"
             />
@@ -92,7 +98,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="fatherNik"
               value={data.fatherNik ?? ''}
-              onChange={(e) => onChange('fatherNik', e.target.value)}
+              onChange={(e) => handleChange('fatherNik', e.target.value)}
+              disabled={disabled}
               placeholder="NIK"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -102,7 +109,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="fatherEducationLevel"
               value={data.fatherEducationLevel ?? ''}
-              onChange={(e) => onChange('fatherEducationLevel', e.target.value)}
+              onChange={(e) => handleChange('fatherEducationLevel', e.target.value)}
+              disabled={disabled}
               placeholder="Pendidikan terakhir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -112,7 +120,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="fatherOccupation"
               value={data.fatherOccupation ?? ''}
-              onChange={(e) => onChange('fatherOccupation', e.target.value)}
+              onChange={(e) => handleChange('fatherOccupation', e.target.value)}
+              disabled={disabled}
               placeholder="Pekerjaan"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -122,7 +131,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="fatherIncomeRange"
               value={data.fatherIncomeRange ?? ''}
-              onChange={(e) => onChange('fatherIncomeRange', e.target.value)}
+              onChange={(e) => handleChange('fatherIncomeRange', e.target.value)}
+              disabled={disabled}
               placeholder="Kisaran pendapatan"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -132,7 +142,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="fatherPhone"
               value={data.fatherPhone ?? ''}
-              onChange={(e) => onChange('fatherPhone', e.target.value)}
+              onChange={(e) => handleChange('fatherPhone', e.target.value)}
+              disabled={disabled}
               placeholder="Nomor telepon"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -143,7 +154,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
               id="fatherEmail"
               type="email"
               value={data.fatherEmail ?? ''}
-              onChange={(e) => onChange('fatherEmail', e.target.value)}
+              onChange={(e) => handleChange('fatherEmail', e.target.value)}
+              disabled={disabled}
               placeholder="email@contoh.com"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -156,7 +168,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="motherFullName"
               value={data.motherFullName ?? ''}
-              onChange={(e) => onChange('motherFullName', e.target.value)}
+              onChange={(e) => handleChange('motherFullName', e.target.value)}
+              disabled={disabled}
               placeholder="Nama lengkap"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -166,7 +179,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="motherBirthPlace"
               value={data.motherBirthPlace ?? ''}
-              onChange={(e) => onChange('motherBirthPlace', e.target.value)}
+              onChange={(e) => handleChange('motherBirthPlace', e.target.value)}
+              disabled={disabled}
               placeholder="Tempat lahir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -177,7 +191,7 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
               id="motherBirthDate"
               type="date"
               value={data.motherBirthDate ?? ''}
-              onChange={(e) => onChange('motherBirthDate', e.target.value)}
+              onChange={(e) => handleChange('motherBirthDate', e.target.value)}
               placeholder="Tanggal lahir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400 !text-gray-400"
             />
@@ -187,7 +201,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="motherNik"
               value={data.motherNik ?? ''}
-              onChange={(e) => onChange('motherNik', e.target.value)}
+              onChange={(e) => handleChange('motherNik', e.target.value)}
+              disabled={disabled}
               placeholder="NIK"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -197,7 +212,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="motherEducationLevel"
               value={data.motherEducationLevel ?? ''}
-              onChange={(e) => onChange('motherEducationLevel', e.target.value)}
+              onChange={(e) => handleChange('motherEducationLevel', e.target.value)}
+              disabled={disabled}
               placeholder="Pendidikan terakhir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -207,7 +223,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="motherOccupation"
               value={data.motherOccupation ?? ''}
-              onChange={(e) => onChange('motherOccupation', e.target.value)}
+              onChange={(e) => handleChange('motherOccupation', e.target.value)}
+              disabled={disabled}
               placeholder="Pekerjaan"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -217,7 +234,7 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="motherIncomeRange"
               value={data.motherIncomeRange ?? ''}
-              onChange={(e) => onChange('motherIncomeRange', e.target.value)}
+              onChange={(e) => handleChange('motherIncomeRange', e.target.value)}
               placeholder="Kisaran pendapatan"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -227,7 +244,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="motherPhone"
               value={data.motherPhone ?? ''}
-              onChange={(e) => onChange('motherPhone', e.target.value)}
+              onChange={(e) => handleChange('motherPhone', e.target.value)}
+              disabled={disabled}
               placeholder="Nomor telepon"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -238,7 +256,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
               id="motherEmail"
               type="email"
               value={data.motherEmail ?? ''}
-              onChange={(e) => onChange('motherEmail', e.target.value)}
+              onChange={(e) => handleChange('motherEmail', e.target.value)}
+              disabled={disabled}
               placeholder="email@contoh.com"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -251,7 +270,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="guardianFullName"
               value={data.guardianFullName ?? ''}
-              onChange={(e) => onChange('guardianFullName', e.target.value)}
+              onChange={(e) => handleChange('guardianFullName', e.target.value)}
+              disabled={disabled}
               placeholder="Nama lengkap"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -261,7 +281,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="guardianBirthPlace"
               value={data.guardianBirthPlace ?? ''}
-              onChange={(e) => onChange('guardianBirthPlace', e.target.value)}
+              onChange={(e) => handleChange('guardianBirthPlace', e.target.value)}
+              disabled={disabled}
               placeholder="Tempat lahir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -272,7 +293,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
               id="guardianBirthDate"
               type="date"
               value={data.guardianBirthDate ?? ''}
-              onChange={(e) => onChange('guardianBirthDate', e.target.value)}
+              onChange={(e) => handleChange('guardianBirthDate', e.target.value)}
+              disabled={disabled}
               placeholder="Tanggal lahir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400 !text-gray-400"
             />
@@ -282,7 +304,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="guardianNik"
               value={data.guardianNik ?? ''}
-              onChange={(e) => onChange('guardianNik', e.target.value)}
+              onChange={(e) => handleChange('guardianNik', e.target.value)}
+              disabled={disabled}
               placeholder="NIK"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -292,7 +315,7 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="guardianEducationLevel"
               value={data.guardianEducationLevel ?? ''}
-              onChange={(e) => onChange('guardianEducationLevel', e.target.value)}
+              onChange={(e) => handleChange('guardianEducationLevel', e.target.value)}
               placeholder="Pendidikan terakhir"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -302,7 +325,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="guardianOccupation"
               value={data.guardianOccupation ?? ''}
-              onChange={(e) => onChange('guardianOccupation', e.target.value)}
+              onChange={(e) => handleChange('guardianOccupation', e.target.value)}
+              disabled={disabled}
               placeholder="Pekerjaan"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -312,7 +336,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="guardianIncomeRange"
               value={data.guardianIncomeRange ?? ''}
-              onChange={(e) => onChange('guardianIncomeRange', e.target.value)}
+              onChange={(e) => handleChange('guardianIncomeRange', e.target.value)}
+              disabled={disabled}
               placeholder="Kisaran pendapatan"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -322,7 +347,7 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
             <Input
               id="guardianPhone"
               value={data.guardianPhone ?? ''}
-              onChange={(e) => onChange('guardianPhone', e.target.value)}
+              onChange={(e) => handleChange('guardianPhone', e.target.value)}
               placeholder="Nomor telepon"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />
@@ -333,7 +358,8 @@ export function ParentGuardianStep2({ data, onChange }: ParentGuardianStep2Props
               id="guardianEmail"
               type="email"
               value={data.guardianEmail ?? ''}
-              onChange={(e) => onChange('guardianEmail', e.target.value)}
+              onChange={(e) => handleChange('guardianEmail', e.target.value)}
+              disabled={disabled}
               placeholder="email@contoh.com"
               className="w-full !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
             />

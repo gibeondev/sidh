@@ -33,6 +33,7 @@ export interface AddressStep3Props {
     | 'parentVisaType'
   >;
   onChange: (field: keyof FullRegistrationPayload, value: string) => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -41,7 +42,9 @@ export interface AddressStep3Props {
  * 2. Rencana periode domisili (Date range: Start - End)
  * 3. Informasi visa/ijin tinggal orang tua yang digunakan (Radio: Diplomat/Student/Diaspora)
  */
-export function AddressStep3({ data, onChange }: AddressStep3Props) {
+export function AddressStep3({ data, onChange, readOnly = false }: AddressStep3Props) {
+  const handleChange = readOnly ? () => {} : onChange;
+  const disabled = readOnly;
   return (
     <section aria-labelledby="alamat-heading" className="space-y-5">
       <h2
@@ -58,8 +61,9 @@ export function AddressStep3({ data, onChange }: AddressStep3Props) {
             placeholder="Negara tempat dinas orang tua/ studi orang tua"
             options={COUNTRY_OPTIONS}
             value={data.parentServiceCountry ?? ''}
-            onChange={(e) => onChange('parentServiceCountry', e.currentTarget.value)}
-            className="!border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400"
+            onChange={(e) => handleChange('parentServiceCountry', e.currentTarget.value)}
+            disabled={disabled}
+            className={`!border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 ${!data.parentServiceCountry?.trim() ? '!text-gray-400' : '!text-gray-900'}`}
             aria-label="Negara tempat dinas orang tua/ studi orang tua"
           />
         </FormRow>
@@ -75,7 +79,7 @@ export function AddressStep3({ data, onChange }: AddressStep3Props) {
               id="domicilePeriodStart"
               type="date"
               value={data.domicilePeriodStart ?? ''}
-              onChange={(e) => onChange('domicilePeriodStart', e.target.value)}
+              onChange={(e) => handleChange('domicilePeriodStart', e.target.value)}
               placeholder="Mulai"
               className="flex-1 !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400 !text-gray-400"
               aria-label="Tanggal mulai domisili"
@@ -85,7 +89,7 @@ export function AddressStep3({ data, onChange }: AddressStep3Props) {
               id="domicilePeriodEnd"
               type="date"
               value={data.domicilePeriodEnd ?? ''}
-              onChange={(e) => onChange('domicilePeriodEnd', e.target.value)}
+              onChange={(e) => handleChange('domicilePeriodEnd', e.target.value)}
               placeholder="Akhir"
               className="flex-1 !border-gray-200 focus-visible:!border-gray-200 focus-visible:!ring-gray-200 placeholder:!text-gray-400 !text-gray-400"
               aria-label="Tanggal akhir domisili"
@@ -97,7 +101,7 @@ export function AddressStep3({ data, onChange }: AddressStep3Props) {
           <RadioGroup
             name="parentVisaType"
             value={data.parentVisaType ?? 'Diplomat'}
-            onChange={(value) => onChange('parentVisaType', value as 'Diplomat' | 'Student' | 'Diaspora')}
+            onChange={(value) => handleChange('parentVisaType', value as 'Diplomat' | 'Student' | 'Diaspora')}
             options={VISA_TYPE_OPTIONS}
             aria-label="Informasi visa/ijin tinggal orang tua yang digunakan"
           />

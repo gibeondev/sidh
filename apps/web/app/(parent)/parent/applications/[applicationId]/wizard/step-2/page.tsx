@@ -82,6 +82,7 @@ export default function WizardStep2Page() {
           )}
 
           <ParentGuardianStep2
+            readOnly={readOnly}
             data={{
               fatherFullName: form.fatherFullName ?? '',
               fatherBirthPlace: form.fatherBirthPlace ?? '',

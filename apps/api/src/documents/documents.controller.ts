@@ -21,6 +21,28 @@ import { Roles } from '../auth/decorators/roles.decorator';
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
 
+/** Public endpoint for pre-registration visa document upload (no auth) */
+@Controller('public/applications/:applicationId/documents')
+export class PublicDocumentsController {
+  constructor(private readonly documentsService: DocumentsService) {}
+
+  @Post('visa')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadVisa(
+    @Param('applicationId') applicationId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: MAX_FILE_SIZE }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return this.documentsService.uploadVisaDocumentForPreRegistration(applicationId, file);
+  }
+}
+
 @Controller('parent/applications/:applicationId/documents')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('PARENT', 'ADMIN')

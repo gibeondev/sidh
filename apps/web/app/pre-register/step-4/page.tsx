@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormContext } from 'react-hook-form';
 import type { PreRegisterPayload } from '@/lib/api/preRegistration';
-import { submitPreRegister, ApiError } from '@/lib/api/preRegistration';
+import { submitPreRegister, uploadPreRegisterVisaDocument, ApiError } from '@/lib/api/preRegistration';
 import {
   PreRegisterHeader,
   Stepper,
@@ -49,6 +49,19 @@ export default function PreRegisterStep4Page() {
     setSubmitting(true);
     try {
       const result = await submitPreRegister(payload);
+      if (visaFile) {
+        try {
+          await uploadPreRegisterVisaDocument(result.applicationId, visaFile);
+        } catch (uploadErr) {
+          setSubmitError(
+            uploadErr instanceof ApiError
+              ? uploadErr.message
+              : 'Pendaftaran berhasil, namun dokumen visa tidak dapat diunggah. Silakan hubungi admin dengan nomor aplikasi untuk mengunggah dokumen.'
+          );
+          setSubmitting(false);
+          return;
+        }
+      }
       const params = new URLSearchParams({
         applicationNo: result.applicationNo,
         applicationId: result.applicationId,

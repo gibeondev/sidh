@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { DocumentsService } from './documents.service';
 import {
+  PublicDocumentsController,
   ParentDocumentsController,
   AdminDocumentsController,
   AdminDocumentActionsController,
@@ -11,6 +12,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 @Module({
   imports: [S3Module, PrismaModule],
   controllers: [
+    PublicDocumentsController,
     ParentDocumentsController,
     AdminDocumentsController,
     AdminDocumentActionsController,
